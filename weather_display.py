@@ -18,15 +18,15 @@ class WeatherDisplay:
         self.width = self.display.width
         self.height = self.display.height
 
-        # Colors for Inky Spectra (7-color e-ink)
-        # Use the display's color palette for best results
-        self.BLACK = self.display.BLACK
-        self.WHITE = self.display.WHITE
-        self.RED = self.display.RED
-        self.YELLOW = self.display.YELLOW
-        self.BLUE = self.display.BLUE
-        self.GREEN = self.display.GREEN
-        self.ORANGE = self.display.ORANGE if hasattr(self.display, 'ORANGE') else self.display.YELLOW
+        # Colors for Inky Spectra (7-color e-ink) - RGB values
+        # The display will convert these to its palette
+        self.BLACK = (0, 0, 0)
+        self.WHITE = (255, 255, 255)
+        self.RED = (255, 0, 0)
+        self.YELLOW = (255, 255, 0)
+        self.BLUE = (0, 0, 255)
+        self.GREEN = (0, 255, 0)
+        self.ORANGE = (255, 140, 0)
 
         # Layout constants
         self.PADDING = 20
@@ -296,8 +296,8 @@ class WeatherDisplay:
     def update_display(self, weather_data):
         """Update the display with weather data"""
         try:
-            # Create new image
-            img = Image.new("RGB", (self.width, self.height), self.WHITE)
+            # Create new image - RGB mode, Inky will convert to palette
+            img = Image.new("RGB", (self.width, self.height), (255, 255, 255))
             draw = ImageDraw.Draw(img)
 
             if not weather_data or not weather_data.get('current'):
