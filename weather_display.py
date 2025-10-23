@@ -79,15 +79,19 @@ class WeatherDisplay:
         if not weather_data:
             return
 
+        # Draw colored header background
+        draw.rectangle([0, 0, self.width, self.HEADER_HEIGHT],
+                      fill=(200, 220, 255), outline=self.BLUE, width=3)
+
         # Location
         location = f"{weather_data['city']}, {weather_data['country']}"
         draw.text((self.PADDING, self.PADDING), location,
                  font=self.font_title, fill=self.BLACK)
 
-        # Date
+        # Date with color
         date_text = weather_data['timestamp'].strftime('%A, %B %d')
         draw.text((self.PADDING, self.PADDING + 32), date_text,
-                 font=self.font_small, fill=self.BLACK)
+                 font=self.font_small, fill=self.BLUE)
 
     def draw_circular_icon(self, draw, x, y, radius, icon_code):
         """Draw a circular weather icon"""
@@ -121,6 +125,19 @@ class WeatherDisplay:
         else:  # Mist etc
             return self.WHITE  # Mist
 
+    def get_temp_color(self, temp):
+        """Get color for temperature based on value"""
+        if temp >= 80:
+            return self.RED  # Hot
+        elif temp >= 70:
+            return self.ORANGE  # Warm
+        elif temp >= 60:
+            return self.YELLOW  # Mild
+        elif temp >= 50:
+            return self.GREEN  # Cool
+        else:
+            return self.BLUE  # Cold
+
     def draw_main_weather(self, draw, weather_data):
         """Draw the main weather section with icon and details"""
         if not weather_data:
@@ -128,17 +145,23 @@ class WeatherDisplay:
 
         y_start = self.HEADER_HEIGHT + self.PADDING
 
+        # Draw subtle background for main section
+        draw.rectangle([0, self.HEADER_HEIGHT, self.width,
+                       self.HEADER_HEIGHT + self.MAIN_SECTION_HEIGHT],
+                      fill=(245, 250, 255))
+
         # Draw large circular icon on the left
         icon_x = 120
         icon_y = y_start + 90
         icon_radius = 70
         self.draw_circular_icon(draw, icon_x, icon_y, icon_radius, weather_data['icon'])
 
-        # Main temperature
+        # Main temperature with color
         temp_text = f"{weather_data['temperature']}°"
         temp_x = 220
         temp_y = y_start + 40
-        draw.text((temp_x, temp_y), temp_text, font=self.font_xl, fill=self.BLACK)
+        temp_color = self.get_temp_color(weather_data['temperature'])
+        draw.text((temp_x, temp_y), temp_text, font=self.font_xl, fill=temp_color)
 
         # Feels like
         feels_text = f"Feels like {weather_data['feels_like']}°"
@@ -152,32 +175,32 @@ class WeatherDisplay:
 
         # Column 1
         details_col1 = [
-            ('Sunrise', weather_data['sunrise'].strftime('%I:%M %p')),
-            ('Sunset', weather_data['sunset'].strftime('%I:%M %p')),
-            (f'High', f"{weather_data.get('temp_max', '--')}°"),
-            (f'Low', f"{weather_data.get('temp_min', '--')}°"),
-            ('Humidity', f"{weather_data['humidity']}%"),
-            ('Pressure', f"{weather_data['pressure']} hPa"),
+            ('Sunrise', weather_data['sunrise'].strftime('%I:%M %p'), self.ORANGE),
+            ('Sunset', weather_data['sunset'].strftime('%I:%M %p'), self.BLUE),
+            (f'High', f"{weather_data.get('temp_max', '--')}°", self.RED),
+            (f'Low', f"{weather_data.get('temp_min', '--')}°", self.BLUE),
+            ('Humidity', f"{weather_data['humidity']}%", self.BLUE),
+            ('Pressure', f"{weather_data['pressure']} hPa", self.BLACK),
         ]
 
-        for i, (label, value) in enumerate(details_col1):
+        for i, (label, value, color) in enumerate(details_col1):
             y = detail_y + i * line_height
             draw.text((col1_x, y), label, font=self.font_tiny, fill=self.BLACK)
-            draw.text((col1_x, y + 15), value, font=self.font_small, fill=self.BLACK)
+            draw.text((col1_x, y + 15), value, font=self.font_small, fill=color)
 
         # Column 2
         wind_arrow = self.get_wind_arrow(weather_data['wind_direction'])
         details_col2 = [
-            (f'{wind_arrow} Wind', f"{weather_data['wind_speed']} mph"),
-            ('UV Index', f"{weather_data.get('uv_index', 'N/A')}"),
-            ('Visibility', f"{weather_data.get('visibility', 10):.1f} mi"),
-            ('Air Quality', weather_data.get('air_quality', {}).get('description', 'N/A')),
+            (f'{wind_arrow} Wind', f"{weather_data['wind_speed']} mph", self.BLUE),
+            ('UV Index', f"{weather_data.get('uv_index', 'N/A')}", self.ORANGE),
+            ('Visibility', f"{weather_data.get('visibility', 10):.1f} mi", self.BLACK),
+            ('Air Quality', weather_data.get('air_quality', {}).get('description', 'N/A'), self.GREEN),
         ]
 
-        for i, (label, value) in enumerate(details_col2):
+        for i, (label, value, color) in enumerate(details_col2):
             y = detail_y + i * line_height
             draw.text((col2_x, y), label, font=self.font_tiny, fill=self.BLACK)
-            draw.text((col2_x, y + 15), value, font=self.font_small, fill=self.BLACK)
+            draw.text((col2_x, y + 15), value, font=self.font_small, fill=color)
 
     def draw_temperature_timeline(self, draw, hourly_data, x, y, width, height):
         """Draw temperature timeline graph"""
@@ -206,14 +229,18 @@ class WeatherDisplay:
             py = graph_y + graph_height - ((temp - min_temp) / temp_range) * graph_height
             points.append((px, py))
 
-        # Draw line
+        # Draw line with gradient effect
         if len(points) > 1:
-            draw.line(points, fill=self.BLACK, width=2)
+            # Draw line segments with varying colors based on temperature
+            for i in range(len(points) - 1):
+                temp_color = self.get_temp_color(temps[i])
+                draw.line([points[i], points[i+1]], fill=temp_color, width=3)
 
-        # Draw points
-        for point in points:
-            draw.ellipse([point[0]-3, point[1]-3, point[0]+3, point[1]+3],
-                        fill=self.RED)
+        # Draw points with temperature-based colors
+        for i, point in enumerate(points):
+            temp_color = self.get_temp_color(temps[i])
+            draw.ellipse([point[0]-4, point[1]-4, point[0]+4, point[1]+4],
+                        fill=temp_color, outline=self.BLACK, width=1)
 
         # Draw time labels under the graph
         label_y = graph_y + graph_height + 8
@@ -254,9 +281,12 @@ class WeatherDisplay:
 
     def draw_forecast_card(self, draw, day_data, x, y, width, height):
         """Draw a single forecast card"""
-        # Draw card background
+        # Get background color based on weather
+        bg_color = self.get_icon_color(day_data['icon'])
+
+        # Draw card background with color
         draw.rectangle([x + 2, y, x + width - 2, y + height],
-                      outline=self.BLACK, width=1)
+                      fill=bg_color, outline=self.BLACK, width=2)
 
         # Day name
         day_name = day_data['day_name']
@@ -272,12 +302,25 @@ class WeatherDisplay:
         draw.text((x + width // 2 - icon_w // 2, y + 32), icon,
                  font=self.font_medium, fill=self.BLACK)
 
-        # Temperature range
-        temp_text = f"{day_data['max_temp']}° / {day_data['min_temp']}°"
-        temp_bbox = draw.textbbox((0, 0), temp_text, font=self.font_tiny)
-        temp_w = temp_bbox[2] - temp_bbox[0]
-        draw.text((x + width // 2 - temp_w // 2, y + 70), temp_text,
-                 font=self.font_tiny, fill=self.BLACK)
+        # Temperature range with colors
+        high_color = self.get_temp_color(day_data['max_temp'])
+        low_color = self.get_temp_color(day_data['min_temp'])
+
+        # Draw high temp
+        high_text = f"{day_data['max_temp']}°"
+        high_bbox = draw.textbbox((0, 0), high_text, font=self.font_small)
+        high_w = high_bbox[2] - high_bbox[0]
+        draw.text((x + width // 2 - high_w - 3, y + 70), high_text,
+                 font=self.font_small, fill=high_color)
+
+        # Draw separator
+        draw.text((x + width // 2 - 3, y + 70), "/",
+                 font=self.font_small, fill=self.BLACK)
+
+        # Draw low temp
+        low_text = f"{day_data['min_temp']}°"
+        draw.text((x + width // 2 + 5, y + 70), low_text,
+                 font=self.font_small, fill=low_color)
 
     def draw_error_message(self, draw, message):
         """Draw error message on display"""
