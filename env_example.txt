@@ -1,0 +1,14 @@
+# OpenWeatherMap API Configuration
+# Get your free API key from: https://openweathermap.org/api
+OPENWEATHER_API_KEY=15f08b7376c547a5b6811ee5ac89efc1
+
+# Location settings
+CITY_NAME=Conshohocken
+COUNTRY_CODE=PA
+UNITS=imperial
+
+# Optional: Override default settings
+# UPDATE_INTERVAL_MINUTES=30
+# SHOW_CURRENT_WEATHER=true
+# SHOW_FORECAST=true
+# FORECAST_DAYS=3
