@@ -1,8 +1,8 @@
 from PIL import Image, ImageDraw, ImageFont
 from inky.auto import auto
-import textwrap
 from datetime import datetime
 from config import *
+import math
 
 class WeatherDisplay:
     def __init__(self):
@@ -13,188 +13,323 @@ class WeatherDisplay:
             print(f"Error initializing display: {e}")
             print("Make sure your Inky Impression is properly connected")
             raise
-        
-        # Set up colors
-        self.colors = {
-            'black': BLACK,
-            'white': WHITE,
-            'red': RED,
-            'yellow': YELLOW,
-            'blue': BLUE,
-            'green': GREEN
-        }
-        
-        # Try to load fonts, fallback to default if not available
+
+        # Display dimensions
+        self.width = self.display.width
+        self.height = self.display.height
+
+        # Colors - using grayscale for e-ink
+        self.BLACK = (0, 0, 0)
+        self.WHITE = (255, 255, 255)
+        self.LIGHT_GRAY = (200, 200, 200)
+        self.MID_GRAY = (150, 150, 150)
+        self.DARK_GRAY = (100, 100, 100)
+
+        # Layout constants
+        self.PADDING = 20
+        self.HEADER_HEIGHT = 60
+        self.MAIN_SECTION_HEIGHT = 240
+        self.FORECAST_HEIGHT = self.height - self.HEADER_HEIGHT - self.MAIN_SECTION_HEIGHT - self.PADDING * 2
+
+        # Try to load fonts
         try:
-            self.title_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 24)
-            self.large_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 20)
-            self.medium_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16)
-            self.small_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
+            self.font_xl = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 72)
+            self.font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 36)
+            self.font_title = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 24)
+            self.font_medium = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18)
+            self.font_small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
+            self.font_tiny = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 11)
         except:
-            print("Using default fonts")
-            self.title_font = ImageFont.load_default()
-            self.large_font = ImageFont.load_default()
-            self.medium_font = ImageFont.load_default()
-            self.small_font = ImageFont.load_default()
-    
-    def get_weather_icon(self, icon_code):
-        """Map OpenWeatherMap icon codes to simple text representations"""
+            print("Warning: Using default fonts")
+            self.font_xl = ImageFont.load_default()
+            self.font_large = ImageFont.load_default()
+            self.font_title = ImageFont.load_default()
+            self.font_medium = ImageFont.load_default()
+            self.font_small = ImageFont.load_default()
+            self.font_tiny = ImageFont.load_default()
+
+    def get_weather_icon_text(self, icon_code):
+        """Map OpenWeatherMap icon codes to emoji/symbols"""
         icon_map = {
-            '01d': '☀',  # clear sky day
-            '01n': '🌙',  # clear sky night
-            '02d': '⛅',  # few clouds day
-            '02n': '☁',  # few clouds night
-            '03d': '☁',  # scattered clouds
-            '03n': '☁',  # scattered clouds
-            '04d': '☁',  # broken clouds
-            '04n': '☁',  # broken clouds
-            '09d': '🌧',  # shower rain
-            '09n': '🌧',  # shower rain
-            '10d': '🌦',  # rain day
-            '10n': '🌧',  # rain night
-            '11d': '⛈',  # thunderstorm
-            '11n': '⛈',  # thunderstorm
-            '13d': '❄',  # snow
-            '13n': '❄',  # snow
-            '50d': '🌫',  # mist
-            '50n': '🌫',  # mist
+            '01d': '☀',  '01n': '🌙',
+            '02d': '⛅', '02n': '☁',
+            '03d': '☁',  '03n': '☁',
+            '04d': '☁',  '04n': '☁',
+            '09d': '🌧', '09n': '🌧',
+            '10d': '🌦', '10n': '🌧',
+            '11d': '⛈',  '11n': '⛈',
+            '13d': '❄',  '13n': '❄',
+            '50d': '🌫', '50n': '🌫',
         }
         return icon_map.get(icon_code, '🌤')
-    
-    def draw_current_weather(self, draw, weather_data, y_start=20):
-        """Draw current weather information"""
+
+    def get_wind_arrow(self, degrees):
+        """Convert wind direction to arrow"""
+        # Normalize degrees to 0-360
+        degrees = degrees % 360
+        arrows = ['↓', '↙', '←', '↖', '↑', '↗', '→', '↘']
+        index = round(degrees / 45) % 8
+        return arrows[index]
+
+    def draw_header(self, draw, weather_data):
+        """Draw the header with location and date"""
         if not weather_data:
-            return y_start
-        
-        # City and time
-        city_text = f"{weather_data['city']}, {weather_data['country']}"
-        time_text = weather_data['timestamp'].strftime("%H:%M")
-        
-        draw.text((20, y_start), city_text, font=self.title_font, fill=self.colors['black'])
-        draw.text((20, y_start + 30), time_text, font=self.medium_font, fill=self.colors['black'])
-        
-        # Main temperature and icon
+            return
+
+        # Location
+        location = f"{weather_data['city']}, {weather_data['country']}"
+        draw.text((self.PADDING, self.PADDING), location,
+                 font=self.font_title, fill=self.BLACK)
+
+        # Date
+        date_text = weather_data['timestamp'].strftime('%A, %B %d')
+        draw.text((self.PADDING, self.PADDING + 32), date_text,
+                 font=self.font_small, fill=self.DARK_GRAY)
+
+    def draw_circular_icon(self, draw, x, y, radius, icon_code):
+        """Draw a circular weather icon"""
+        # Draw circle background
+        circle_color = self.get_icon_color(icon_code)
+        draw.ellipse([x - radius, y - radius, x + radius, y + radius],
+                    fill=circle_color, outline=self.BLACK, width=2)
+
+        # Draw icon text in center
+        icon_text = self.get_weather_icon_text(icon_code)
+        # Center the emoji - approximate centering
+        text_bbox = draw.textbbox((0, 0), icon_text, font=self.font_xl)
+        text_w = text_bbox[2] - text_bbox[0]
+        text_h = text_bbox[3] - text_bbox[1]
+        draw.text((x - text_w // 2, y - text_h // 2 - 10), icon_text,
+                 font=self.font_xl, fill=self.BLACK)
+
+    def get_icon_color(self, icon_code):
+        """Get color for weather icon based on condition"""
+        # Using grayscale colors suitable for e-ink
+        if icon_code.startswith('01'):  # Clear
+            return (255, 200, 100)  # Yellowish
+        elif icon_code.startswith(('02', '03', '04')):  # Clouds
+            return (200, 200, 200)  # Light gray
+        elif icon_code.startswith(('09', '10')):  # Rain
+            return (150, 180, 200)  # Blueish gray
+        elif icon_code.startswith('11'):  # Thunderstorm
+            return (120, 120, 150)  # Dark blueish
+        elif icon_code.startswith('13'):  # Snow
+            return (240, 240, 255)  # White-ish
+        else:  # Mist etc
+            return (180, 180, 180)  # Mid gray
+
+    def draw_main_weather(self, draw, weather_data):
+        """Draw the main weather section with icon and details"""
+        if not weather_data:
+            return
+
+        y_start = self.HEADER_HEIGHT + self.PADDING
+
+        # Draw large circular icon on the left
+        icon_x = 120
+        icon_y = y_start + 90
+        icon_radius = 70
+        self.draw_circular_icon(draw, icon_x, icon_y, icon_radius, weather_data['icon'])
+
+        # Main temperature
         temp_text = f"{weather_data['temperature']}°"
-        icon = self.get_weather_icon(weather_data['icon'])
-        
-        # Large temperature
-        draw.text((20, y_start + 60), temp_text, font=self.large_font, fill=self.colors['black'])
-        draw.text((120, y_start + 60), icon, font=self.large_font, fill=self.colors['black'])
-        
-        # Description
-        desc_text = weather_data['description']
-        draw.text((20, y_start + 90), desc_text, font=self.medium_font, fill=self.colors['black'])
-        
+        temp_x = 220
+        temp_y = y_start + 40
+        draw.text((temp_x, temp_y), temp_text, font=self.font_xl, fill=self.BLACK)
+
         # Feels like
-        feels_like_text = f"Feels like {weather_data['feels_like']}°"
-        draw.text((20, y_start + 110), feels_like_text, font=self.small_font, fill=self.colors['black'])
-        
-        # Additional details
-        details_y = y_start + 140
-        if SHOW_HUMIDITY:
-            humidity_text = f"Humidity: {weather_data['humidity']}%"
-            draw.text((20, details_y), humidity_text, font=self.small_font, fill=self.colors['black'])
-            details_y += 20
-        
-        if SHOW_WIND:
-            wind_text = f"Wind: {weather_data['wind_speed']} m/s"
-            draw.text((20, details_y), wind_text, font=self.small_font, fill=self.colors['black'])
-            details_y += 20
-        
-        if SHOW_PRESSURE:
-            pressure_text = f"Pressure: {weather_data['pressure']} hPa"
-            draw.text((20, details_y), pressure_text, font=self.small_font, fill=self.colors['black'])
-            details_y += 20
-        
-        # Sunrise/Sunset
-        sunrise_text = f"Sunrise: {weather_data['sunrise'].strftime('%H:%M')}"
-        sunset_text = f"Sunset: {weather_data['sunset'].strftime('%H:%M')}"
-        draw.text((20, details_y), sunrise_text, font=self.small_font, fill=self.colors['black'])
-        draw.text((200, details_y), sunset_text, font=self.small_font, fill=self.colors['black'])
-        
-        return details_y + 40
-    
-    def draw_forecast(self, draw, forecast_data, y_start):
-        """Draw weather forecast"""
-        if not forecast_data or not SHOW_FORECAST:
-            return y_start
-        
-        # Forecast title
-        draw.text((20, y_start), "Forecast", font=self.title_font, fill=self.colors['black'])
-        y_start += 40
-        
-        # Draw forecast days
-        for i, day in enumerate(forecast_data[:FORECAST_DAYS]):
-            x_pos = 20 + (i * 200)  # Space days horizontally
-            
-            # Day name
-            draw.text((x_pos, y_start), day['day_name'], font=self.medium_font, fill=self.colors['black'])
-            
-            # Icon and description
-            icon = self.get_weather_icon(day['icon'])
-            draw.text((x_pos, y_start + 25), icon, font=self.medium_font, fill=self.colors['black'])
-            draw.text((x_pos + 30, y_start + 25), day['description'], font=self.small_font, fill=self.colors['black'])
-            
-            # Temperature range
-            temp_text = f"{day['max_temp']}°/{day['min_temp']}°"
-            draw.text((x_pos, y_start + 45), temp_text, font=self.small_font, fill=self.colors['black'])
-            
-            # Additional details
-            details_text = f"H: {day['humidity']}% W: {day['wind_speed']}m/s"
-            draw.text((x_pos, y_start + 65), details_text, font=self.small_font, fill=self.colors['black'])
-        
-        return y_start + 100
-    
+        feels_text = f"Feels like {weather_data['feels_like']}°"
+        draw.text((temp_x, temp_y + 85), feels_text, font=self.font_small, fill=self.DARK_GRAY)
+
+        # Right side: Two columns of details
+        col1_x = 420
+        col2_x = 620
+        detail_y = y_start + 10
+        line_height = 35
+
+        # Column 1
+        details_col1 = [
+            ('☀ Sunrise', weather_data['sunrise'].strftime('%I:%M %p')),
+            ('🌙 Sunset', weather_data['sunset'].strftime('%I:%M %p')),
+            (f'↑ High', f"{weather_data.get('temp_max', '--')}°"),
+            (f'↓ Low', f"{weather_data.get('temp_min', '--')}°"),
+            ('💧 Humidity', f"{weather_data['humidity']}%"),
+            ('🌡 Pressure', f"{weather_data['pressure']} hPa"),
+        ]
+
+        for i, (label, value) in enumerate(details_col1):
+            y = detail_y + i * line_height
+            draw.text((col1_x, y), label, font=self.font_tiny, fill=self.DARK_GRAY)
+            draw.text((col1_x, y + 15), value, font=self.font_small, fill=self.BLACK)
+
+        # Column 2
+        wind_arrow = self.get_wind_arrow(weather_data['wind_direction'])
+        details_col2 = [
+            (f'{wind_arrow} Wind', f"{weather_data['wind_speed']} m/s"),
+            ('☀ UV Index', f"{weather_data.get('uv_index', 'N/A')}"),
+            ('🌫 Visibility', f">{weather_data.get('visibility', 10):.1f} km"),
+            ('🍃 Air Quality', weather_data.get('air_quality', {}).get('description', 'N/A')),
+        ]
+
+        for i, (label, value) in enumerate(details_col2):
+            y = detail_y + i * line_height
+            draw.text((col2_x, y), label, font=self.font_tiny, fill=self.DARK_GRAY)
+            draw.text((col2_x, y + 15), value, font=self.font_small, fill=self.BLACK)
+
+    def draw_temperature_timeline(self, draw, hourly_data, x, y, width, height):
+        """Draw temperature timeline graph"""
+        if not hourly_data or len(hourly_data) < 2:
+            return
+
+        # Extract temperatures
+        temps = [h['temp'] for h in hourly_data]
+        times = [h['time'] for h in hourly_data]
+
+        min_temp = min(temps)
+        max_temp = max(temps)
+        temp_range = max_temp - min_temp if max_temp != min_temp else 1
+
+        # Draw graph background
+        graph_height = 40
+        graph_y = y + 5
+
+        # Calculate points
+        points = []
+        step = width / (len(temps) - 1) if len(temps) > 1 else width
+
+        for i, temp in enumerate(temps):
+            px = x + i * step
+            # Invert y because higher temps should be higher on screen
+            py = graph_y + graph_height - ((temp - min_temp) / temp_range) * graph_height
+            points.append((px, py))
+
+        # Draw line
+        if len(points) > 1:
+            draw.line(points, fill=self.DARK_GRAY, width=2)
+
+        # Draw points
+        for point in points:
+            draw.ellipse([point[0]-3, point[1]-3, point[0]+3, point[1]+3],
+                        fill=self.BLACK)
+
+        # Draw time labels under the graph
+        label_y = graph_y + graph_height + 8
+        for i, time in enumerate(times):
+            if i % 2 == 0:  # Show every other label to avoid crowding
+                px = x + i * step
+                time_text = time.strftime('%I%p').lstrip('0')
+                draw.text((px - 15, label_y), time_text, font=self.font_tiny, fill=self.DARK_GRAY)
+
+    def draw_forecast(self, draw, forecast_data):
+        """Draw 7-day forecast cards"""
+        if not forecast_data:
+            return
+
+        # Forecast section starts after main section
+        section_y = self.HEADER_HEIGHT + self.MAIN_SECTION_HEIGHT + self.PADDING
+
+        # Draw timeline first
+        timeline_height = 70
+        self.draw_temperature_timeline(draw, forecast_data.get('hourly', []),
+                                      self.PADDING + 10, section_y,
+                                      self.width - self.PADDING * 2 - 20,
+                                      timeline_height)
+
+        # Draw forecast cards
+        cards_y = section_y + timeline_height + 10
+        daily_forecasts = forecast_data.get('daily', [])[:7]
+
+        if not daily_forecasts:
+            return
+
+        card_width = (self.width - self.PADDING * 2) / len(daily_forecasts)
+        card_height = 100
+
+        for i, day in enumerate(daily_forecasts):
+            card_x = self.PADDING + i * card_width
+            self.draw_forecast_card(draw, day, card_x, cards_y, card_width, card_height)
+
+    def draw_forecast_card(self, draw, day_data, x, y, width, height):
+        """Draw a single forecast card"""
+        # Draw card background
+        draw.rectangle([x + 2, y, x + width - 2, y + height],
+                      outline=self.LIGHT_GRAY, width=1)
+
+        # Day name
+        day_name = day_data['day_name']
+        text_bbox = draw.textbbox((0, 0), day_name, font=self.font_small)
+        text_w = text_bbox[2] - text_bbox[0]
+        draw.text((x + width // 2 - text_w // 2, y + 8), day_name,
+                 font=self.font_small, fill=self.BLACK)
+
+        # Weather icon (smaller)
+        icon = self.get_weather_icon_text(day_data['icon'])
+        icon_bbox = draw.textbbox((0, 0), icon, font=self.font_medium)
+        icon_w = icon_bbox[2] - icon_bbox[0]
+        draw.text((x + width // 2 - icon_w // 2, y + 32), icon,
+                 font=self.font_medium, fill=self.BLACK)
+
+        # Temperature range
+        temp_text = f"{day_data['max_temp']}° / {day_data['min_temp']}°"
+        temp_bbox = draw.textbbox((0, 0), temp_text, font=self.font_tiny)
+        temp_w = temp_bbox[2] - temp_bbox[0]
+        draw.text((x + width // 2 - temp_w // 2, y + 70), temp_text,
+                 font=self.font_tiny, fill=self.DARK_GRAY)
+
     def draw_error_message(self, draw, message):
         """Draw error message on display"""
-        # Clear the display
-        draw.rectangle([(0, 0), (self.display.width, self.display.height)], fill=self.colors['white'])
-        
-        # Draw error message
-        lines = textwrap.wrap(message, width=40)
-        y_pos = 50
-        
-        for line in lines:
-            draw.text((20, y_pos), line, font=self.medium_font, fill=self.colors['black'])
-            y_pos += 30
-        
-        # Draw timestamp
+        draw.rectangle([(0, 0), (self.width, self.height)], fill=self.WHITE)
+
+        # Center error message
+        y_pos = self.height // 2 - 50
+        draw.text((self.PADDING, y_pos), "ERROR", font=self.font_large, fill=self.BLACK)
+        draw.text((self.PADDING, y_pos + 50), message, font=self.font_small, fill=self.DARK_GRAY)
+
+        # Timestamp
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        draw.text((20, y_pos + 20), f"Last updated: {timestamp}", font=self.small_font, fill=self.colors['black'])
-    
+        draw.text((self.PADDING, self.height - 40), f"Last updated: {timestamp}",
+                 font=self.font_tiny, fill=self.DARK_GRAY)
+
     def update_display(self, weather_data):
         """Update the display with weather data"""
         try:
             # Create new image
-            img = Image.new("RGB", (self.display.width, self.display.height), self.colors['white'])
+            img = Image.new("RGB", (self.width, self.height), self.WHITE)
             draw = ImageDraw.Draw(img)
-            
+
             if not weather_data or not weather_data.get('current'):
                 self.draw_error_message(draw, "Unable to fetch weather data. Check your API key and internet connection.")
             else:
-                # Draw current weather
-                y_pos = self.draw_current_weather(draw, weather_data['current'])
-                
-                # Draw forecast
-                if weather_data.get('forecast'):
-                    self.draw_forecast(draw, weather_data['forecast'], y_pos)
-                
-                # Draw last updated timestamp
+                # Draw all sections
+                self.draw_header(draw, weather_data['current'])
+                self.draw_main_weather(draw, weather_data['current'])
+                self.draw_forecast(draw, weather_data.get('forecast'))
+
+                # Draw last updated in bottom right
                 last_updated = weather_data.get('last_updated', datetime.now())
-                timestamp_text = f"Last updated: {last_updated.strftime('%H:%M')}"
-                draw.text((20, self.display.height - 30), timestamp_text, font=self.small_font, fill=self.colors['black'])
-            
-            # Display the image
+                timestamp_text = f"Updated: {last_updated.strftime('%I:%M %p')}"
+                text_bbox = draw.textbbox((0, 0), timestamp_text, font=self.font_tiny)
+                text_w = text_bbox[2] - text_bbox[0]
+                draw.text((self.width - text_w - self.PADDING, self.height - 20),
+                         timestamp_text, font=self.font_tiny, fill=self.DARK_GRAY)
+
+            # Save for debugging
+            img.save('weather_display.png')
+            print(f"Weather display saved as weather_display.png at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+            # Display on e-ink
             self.display.set_image(img)
             self.display.show()
-            
+
             print(f"Weather display updated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-            
+
         except Exception as e:
             print(f"Error updating display: {e}")
+            import traceback
+            traceback.print_exc()
             # Try to show error on display
             try:
-                img = Image.new("RGB", (self.display.width, self.display.height), self.colors['white'])
+                img = Image.new("RGB", (self.width, self.height), self.WHITE)
                 draw = ImageDraw.Draw(img)
                 self.draw_error_message(draw, f"Display error: {str(e)}")
                 self.display.set_image(img)
@@ -204,10 +339,11 @@ class WeatherDisplay:
 
 def test_display():
     """Test function to verify display is working"""
+    from datetime import timedelta
     try:
         display = WeatherDisplay()
         print("✅ Display initialized successfully")
-        
+
         # Test with sample data
         test_data = {
             'current': {
@@ -215,35 +351,50 @@ def test_display():
                 'country': 'TC',
                 'temperature': 22,
                 'feels_like': 25,
+                'temp_min': 18,
+                'temp_max': 26,
                 'description': 'Partly Cloudy',
                 'icon': '02d',
                 'humidity': 65,
                 'wind_speed': 3.2,
+                'wind_direction': 180,
                 'pressure': 1013,
                 'sunrise': datetime.now().replace(hour=6, minute=30),
                 'sunset': datetime.now().replace(hour=18, minute=45),
+                'visibility': 10.0,
+                'uv_index': 5.2,
+                'air_quality': {'index': 1, 'description': 'Good'},
                 'timestamp': datetime.now()
             },
-            'forecast': [
-                {
-                    'date': datetime.now().date() + timedelta(days=1),
-                    'day_name': 'Tomorrow',
-                    'min_temp': 15,
-                    'max_temp': 25,
-                    'description': 'Sunny',
-                    'icon': '01d',
-                    'humidity': 50,
-                    'wind_speed': 2.1
-                }
-            ],
+            'forecast': {
+                'hourly': [
+                    {'time': datetime.now() + timedelta(hours=i*3), 'temp': 20 + i, 'icon': '02d'}
+                    for i in range(8)
+                ],
+                'daily': [
+                    {
+                        'date': datetime.now().date() + timedelta(days=i),
+                        'day_name': ['Today', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed'][i],
+                        'min_temp': 15 + i,
+                        'max_temp': 25 + i,
+                        'description': 'Sunny',
+                        'icon': '01d',
+                        'humidity': 50,
+                        'wind_speed': 2.1
+                    }
+                    for i in range(7)
+                ]
+            },
             'last_updated': datetime.now()
         }
-        
+
         display.update_display(test_data)
         print("✅ Test display update completed")
-        
+
     except Exception as e:
         print(f"❌ Display test failed: {e}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
     test_display()
