@@ -4,6 +4,7 @@ Preview the weather dashboard display without Inky hardware
 This creates a PNG file that you can view on your computer
 """
 
+import sys
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime, timedelta
 
@@ -21,17 +22,22 @@ class MockInkyDisplay:
         # Don't actually show on hardware, just save
         pass
 
-# Import the WeatherDisplay class but override the display
-import weather_display
-original_auto = weather_display.auto
-
 def mock_auto():
     """Replace the auto() function to return mock display"""
     return MockInkyDisplay()
 
-# Replace the auto import
-weather_display.auto = mock_auto
+# Create a mock inky module before importing weather_display
+from types import SimpleNamespace
 
+# Create mock modules
+inky_auto_module = SimpleNamespace(auto=mock_auto)
+inky_module = SimpleNamespace(auto=inky_auto_module)
+
+# Add mock to sys.modules before importing weather_display
+sys.modules['inky'] = inky_module
+sys.modules['inky.auto'] = inky_auto_module
+
+# Now we can import weather_display
 from weather_display import WeatherDisplay
 
 def generate_preview():
