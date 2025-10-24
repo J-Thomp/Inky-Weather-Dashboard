@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=800, height=480">
+    <title>Weather Dashboard</title>
+    <link rel="stylesheet" href="weather.css">
+</head>
+<body>
+    <div class="weather-dashboard">
+        <!-- Header Section - Centered -->
+        <div class="header">
+            <div class="location">Conshohocken, PA</div>
+            <div class="date">Thursday, October 23</div>
+        </div>
+
+        <!-- Main Current Weather Section -->
+        <div class="current-section">
+            <!-- Left: Large Icon and Temperature -->
+            <div class="current-left">
+                <div class="large-icon-container">
+                    <img src="icons/02d.png" alt="Weather" class="large-weather-icon">
+                </div>
+                <div class="current-temp-container">
+                    <div class="current-temp">54°<span class="temp-unit">F</span></div>
+                    <div class="feels-like">Feels Like 51°</div>
+                </div>
+            </div>
+
+            <!-- Right: Two Columns x 3 Rows of Details -->
+            <div class="current-right">
+                <div class="details-column">
+                    <div class="detail-item">
+                        <img src="icons/sunrise.png" alt="Sunrise" class="detail-icon">
+                        <div class="detail-info">
+                            <div class="detail-label">Sunrise</div>
+                            <div class="detail-value">7:20 AM</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <img src="icons/wind.png" alt="Wind" class="detail-icon">
+                        <div class="detail-info">
+                            <div class="detail-label">Wind</div>
+                            <div class="detail-value">5.99 mph</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <img src="icons/visibility.png" alt="Visibility" class="detail-icon">
+                        <div class="detail-info">
+                            <div class="detail-label">Visibility</div>
+                            <div class="detail-value">>10.0 mi</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="details-column">
+                    <div class="detail-item">
+                        <img src="icons/sunset.png" alt="Sunset" class="detail-icon">
+                        <div class="detail-info">
+                            <div class="detail-label">Sunset</div>
+                            <div class="detail-value">6:10 PM</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <img src="icons/humidity.png" alt="Humidity" class="detail-icon">
+                        <div class="detail-info">
+                            <div class="detail-label">Humidity</div>
+                            <div class="detail-value">60 %</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <img src="icons/aqi.png" alt="Air Quality" class="detail-icon">
+                        <div class="detail-info">
+                            <div class="detail-label">Air Quality</div>
+                            <div class="detail-value">2 /10</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Temperature and Rain Graph -->
+        <div class="graph-section">
+            <!-- Y-axis labels - Temperature (Left) -->
+            <div class="y-axis-left">
+                <div class="y-label">56°F</div>
+                <div class="y-label-mid"></div>
+                <div class="y-label">46°F</div>
+            </div>
+
+            <!-- Graph -->
+            <div class="graph-container">
+                <svg class="weather-graph" viewBox="0 0 760 80" preserveAspectRatio="none">
+                    <defs>
+                        <!-- Orange gradient for temperature -->
+                        <linearGradient id="tempGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#FF8C42;stop-opacity:0.6" />
+                            <stop offset="100%" style="stop-color:#FF8C42;stop-opacity:0" />
+                        </linearGradient>
+                        <!-- Blue gradient for rain -->
+                        <linearGradient id="rainGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:0.5" />
+                            <stop offset="100%" style="stop-color:#4A90E2;stop-opacity:0" />
+                        </linearGradient>
+                    </defs>
+
+                    <!-- Rain gradient area -->
+                    <path
+                        d="M 0,70 L 0.0,63.0 L 76.0,66.5 L 152.0,70.0 L 228.0,70.0 L 304.0,59.5 L 380.0,56.0 L 456.0,52.5 L 532.0,49.0 L 608.0,45.5 L 684.0,56.0 L 760.0,63.0 L 760,70 Z"
+                        fill="url(#rainGradient)"
+                    />
+
+                    <!-- Rain line -->
+                    <polyline
+                        points="0.0,63.0 76.0,66.5 152.0,70.0 228.0,70.0 304.0,59.5 380.0,56.0 456.0,52.5 532.0,49.0 608.0,45.5 684.0,56.0 760.0,63.0 "
+                        class="rain-line"
+                    />
+
+                    <!-- Temperature gradient area -->
+                    <path
+                        d="M 0,70 L 0.0,40.0 L 76.0,30.0 L 152.0,20.0 L 228.0,10.0 L 304.0,20.0 L 380.0,35.0 L 456.0,45.0 L 532.0,50.0 L 608.0,55.0 L 684.0,60.0 L 760.0,50.0 L 760,70 Z"
+                        fill="url(#tempGradient)"
+                    />
+
+                    <!-- Temperature line -->
+                    <polyline
+                        points="0.0,40.0 76.0,30.0 152.0,20.0 228.0,10.0 304.0,20.0 380.0,35.0 456.0,45.0 532.0,50.0 608.0,55.0 684.0,60.0 760.0,50.0 "
+                        class="temp-line"
+                    />
+
+                    <!-- Temperature points -->
+                    
+                    <circle
+                        cx="0.0"
+                        cy="40.0"
+                        r="3"
+                        class="temp-point"
+                    />
+                    
+                    <circle
+                        cx="76.0"
+                        cy="30.0"
+                        r="3"
+                        class="temp-point"
+                    />
+                    
+                    <circle
+                        cx="152.0"
+                        cy="20.0"
+                        r="3"
+                        class="temp-point"
+                    />
+                    
+                    <circle
+                        cx="228.0"
+                        cy="10.0"
+                        r="3"
+                        class="temp-point"
+                    />
+                    
+                    <circle
+                        cx="304.0"
+                        cy="20.0"
+                        r="3"
+                        class="temp-point"
+                    />
+                    
+                    <circle
+                        cx="380.0"
+                        cy="35.0"
+                        r="3"
+                        class="temp-point"
+                    />
+                    
+                    <circle
+                        cx="456.0"
+                        cy="45.0"
+                        r="3"
+                        class="temp-point"
+                    />
+                    
+                    <circle
+                        cx="532.0"
+                        cy="50.0"
+                        r="3"
+                        class="temp-point"
+                    />
+                    
+                    <circle
+                        cx="608.0"
+                        cy="55.0"
+                        r="3"
+                        class="temp-point"
+                    />
+                    
+                    <circle
+                        cx="684.0"
+                        cy="60.0"
+                        r="3"
+                        class="temp-point"
+                    />
+                    
+                    <circle
+                        cx="760.0"
+                        cy="50.0"
+                        r="3"
+                        class="temp-point"
+                    />
+                    
+                </svg>
+
+                <!-- Time labels -->
+                <div class="time-labels">
+                    
+                    
+                    <div class="time-label" style="left: 0.0%">10 AM</div>
+                    
+                    
+                    
+                    
+                    
+                    <div class="time-label" style="left: 20.0%">2 PM</div>
+                    
+                    
+                    
+                    
+                    
+                    <div class="time-label" style="left: 40.0%">6 PM</div>
+                    
+                    
+                    
+                    
+                    
+                    <div class="time-label" style="left: 60.0%">10 PM</div>
+                    
+                    
+                    
+                    
+                    
+                    <div class="time-label" style="left: 80.0%">2 AM</div>
+                    
+                    
+                    
+                    
+                    
+                    <div class="time-label" style="left: 100.0%">6 AM</div>
+                    
+                    
+                </div>
+            </div>
+
+            <!-- Y-axis labels - Rain % (Right) -->
+            <div class="y-axis-right">
+                <div class="y-label">100%</div>
+                <div class="y-label-mid">50%</div>
+                <div class="y-label">0%</div>
+            </div>
+        </div>
+
+        <!-- 7-Day Forecast -->
+        <div class="forecast-section">
+            
+            <div class="forecast-card">
+                <div class="forecast-day">Fri</div>
+                <div class="forecast-icon-container">
+                    <img src="icons/02d.png" alt="Weather" class="forecast-icon">
+                </div>
+                <div class="forecast-temp">50 / 46°</div>
+            </div>
+            
+            <div class="forecast-card">
+                <div class="forecast-day">Sat</div>
+                <div class="forecast-icon-container">
+                    <img src="icons/02d.png" alt="Weather" class="forecast-icon">
+                </div>
+                <div class="forecast-temp">54 / 47°</div>
+            </div>
+            
+            <div class="forecast-card">
+                <div class="forecast-day">Sun</div>
+                <div class="forecast-icon-container">
+                    <img src="icons/02d.png" alt="Weather" class="forecast-icon">
+                </div>
+                <div class="forecast-temp">68 / 53°</div>
+            </div>
+            
+            <div class="forecast-card">
+                <div class="forecast-day">Mon</div>
+                <div class="forecast-icon-container">
+                    <img src="icons/01d.png" alt="Weather" class="forecast-icon">
+                </div>
+                <div class="forecast-temp">62 / 68°</div>
+            </div>
+            
+            <div class="forecast-card">
+                <div class="forecast-day">Tue</div>
+                <div class="forecast-icon-container">
+                    <img src="icons/01d.png" alt="Weather" class="forecast-icon">
+                </div>
+                <div class="forecast-temp">89 / 52°</div>
+            </div>
+            
+            <div class="forecast-card">
+                <div class="forecast-day">Wed</div>
+                <div class="forecast-icon-container">
+                    <img src="icons/01d.png" alt="Weather" class="forecast-icon">
+                </div>
+                <div class="forecast-temp">74 / 57°</div>
+            </div>
+            
+            <div class="forecast-card">
+                <div class="forecast-day">Thu</div>
+                <div class="forecast-icon-container">
+                    <img src="icons/02d.png" alt="Weather" class="forecast-icon">
+                </div>
+                <div class="forecast-temp">73 / 58°</div>
+            </div>
+            
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">10:29PM</div>
+    </div>
+</body>
+</html>

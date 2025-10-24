@@ -1,0 +1,280 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: #f5f5f5;
+    width: 800px;
+    height: 480px;
+    overflow: hidden;
+}
+
+.weather-dashboard {
+    width: 800px;
+    height: 480px;
+    display: flex;
+    flex-direction: column;
+    background-color: #f5f5f5;
+    color: #333;
+    padding: 15px;
+}
+
+/* Header - Centered */
+.header {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.location {
+    font-size: 28px;
+    font-weight: bold;
+    color: #000;
+    margin-bottom: 3px;
+}
+
+.date {
+    font-size: 14px;
+    color: #666;
+}
+
+/* Current Weather Section */
+.current-section {
+    display: flex;
+    margin-bottom: 8px;
+}
+
+/* Left side - Icon and Temperature */
+.current-left {
+    display: flex;
+    align-items: center;
+    margin-right: 25px;
+}
+
+.large-icon-container {
+    margin-right: 20px;
+}
+
+.large-weather-icon {
+    width: 130px;
+    height: 130px;
+    display: block;
+}
+
+.current-temp-container {
+    display: flex;
+    flex-direction: column;
+    margin-left: 15px;
+}
+
+.current-temp {
+    font-size: 52px;
+    font-weight: 300;
+    color: #000;
+    line-height: 1;
+    letter-spacing: -1px;
+}
+
+.temp-unit {
+    font-size: 28px;
+    font-weight: 300;
+    vertical-align: super;
+    margin-left: -2px;
+}
+
+.feels-like {
+    font-size: 12px;
+    font-weight: 300;
+    color: #666;
+    margin-top: 6px;
+}
+
+/* Right side - Details in two columns */
+.current-right {
+    display: flex;
+    gap: 40px;
+    flex: 1;
+    margin-left: 50px;
+}
+
+.details-column {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.detail-icon {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+}
+
+.detail-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-label {
+    font-size: 11px;
+    color: #888;
+    line-height: 1.2;
+}
+
+.detail-value {
+    font-size: 15px;
+    font-weight: bold;
+    color: #000;
+    line-height: 1.2;
+}
+
+/* Graph Section */
+.graph-section {
+    height: 95px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    padding: 5px 5px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.y-axis-left,
+.y-axis-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 70px;
+    font-size: 9px;
+    color: #666;
+    flex-shrink: 0;
+}
+
+.y-axis-left {
+    width: 40px;
+    text-align: right;
+    padding-right: 8px;
+}
+
+.y-axis-right {
+    width: 40px;
+    text-align: left;
+    padding-left: 8px;
+}
+
+.y-label {
+    line-height: 1;
+}
+
+.y-label-mid {
+    line-height: 1;
+}
+
+.graph-container {
+    flex: 1;
+    position: relative;
+}
+
+.weather-graph {
+    width: 100%;
+    height: 70px;
+    display: block;
+}
+
+.rain-line {
+    fill: none;
+    stroke: #4A90E2;
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+}
+
+.temp-line {
+    fill: none;
+    stroke: #FF8C42;
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+}
+
+.temp-point {
+    fill: #FF8C42;
+    stroke: #333;
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+}
+
+.time-labels {
+    display: flex;
+    position: relative;
+    height: 15px;
+    margin-top: 2px;
+}
+
+.time-label {
+    position: absolute;
+    font-size: 9px;
+    color: #666;
+    transform: translateX(-50%);
+}
+
+/* Forecast Section */
+.forecast-section {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.forecast-card {
+    flex: 1;
+    background-color: #fff;
+    border: 2px solid #999;
+    border-radius: 6px;
+    padding: 8px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.forecast-day {
+    font-size: 13px;
+    font-weight: bold;
+    color: #000;
+    margin-bottom: 6px;
+}
+
+.forecast-icon-container {
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+}
+
+.forecast-icon {
+    width: 40px;
+    height: 40px;
+}
+
+.forecast-temp {
+    font-size: 11px;
+    color: #000;
+    font-weight: 500;
+}
+
+/* Footer */
+.footer {
+    text-align: right;
+    font-size: 9px;
+    color: #999;
+}

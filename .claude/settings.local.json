@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.youtube.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(python download_icons.py:*)",
+      "Bash(python html_weather_preview.py:*)"
     ],
     "deny": [],
     "ask": []

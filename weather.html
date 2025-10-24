@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=800, height=480">
+    <title>Weather Dashboard</title>
+    <link rel="stylesheet" href="weather.css">
+</head>
+<body>
+    <div class="weather-dashboard">
+        <!-- Header Section - Centered -->
+        <div class="header">
+            <div class="location">{{ city }}, {{ country }}</div>
+            <div class="date">{{ current_date }}</div>
+        </div>
+
+        <!-- Main Current Weather Section -->
+        <div class="current-section">
+            <!-- Left: Large Icon and Temperature -->
+            <div class="current-left">
+                <div class="large-icon-container">
+                    <img src="icons/{{ current_icon }}.png" alt="Weather" class="large-weather-icon">
+                </div>
+                <div class="current-temp-container">
+                    <div class="current-temp">{{ temperature }}°<span class="temp-unit">F</span></div>
+                    <div class="feels-like">Feels Like {{ feels_like }}°</div>
+                </div>
+            </div>
+
+            <!-- Right: Two Columns x 3 Rows of Details -->
+            <div class="current-right">
+                <div class="details-column">
+                    <div class="detail-item">
+                        <img src="icons/sunrise.png" alt="Sunrise" class="detail-icon">
+                        <div class="detail-info">
+                            <div class="detail-label">Sunrise</div>
+                            <div class="detail-value">{{ sunrise }}</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <img src="icons/wind.png" alt="Wind" class="detail-icon">
+                        <div class="detail-info">
+                            <div class="detail-label">Wind</div>
+                            <div class="detail-value">{{ wind_speed }} mph</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <img src="icons/visibility.png" alt="Visibility" class="detail-icon">
+                        <div class="detail-info">
+                            <div class="detail-label">Visibility</div>
+                            <div class="detail-value">{{ visibility }} mi</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="details-column">
+                    <div class="detail-item">
+                        <img src="icons/sunset.png" alt="Sunset" class="detail-icon">
+                        <div class="detail-info">
+                            <div class="detail-label">Sunset</div>
+                            <div class="detail-value">{{ sunset }}</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <img src="icons/humidity.png" alt="Humidity" class="detail-icon">
+                        <div class="detail-info">
+                            <div class="detail-label">Humidity</div>
+                            <div class="detail-value">{{ humidity }} %</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <img src="icons/aqi.png" alt="Air Quality" class="detail-icon">
+                        <div class="detail-info">
+                            <div class="detail-label">Air Quality</div>
+                            <div class="detail-value">{{ air_quality }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Temperature and Rain Graph -->
+        <div class="graph-section">
+            <!-- Y-axis labels - Temperature (Left) -->
+            <div class="y-axis-left">
+                <div class="y-label">{{ temp_max }}°F</div>
+                <div class="y-label-mid"></div>
+                <div class="y-label">{{ temp_min }}°F</div>
+            </div>
+
+            <!-- Graph -->
+            <div class="graph-container">
+                <svg class="weather-graph" viewBox="0 0 760 80" preserveAspectRatio="none">
+                    <defs>
+                        <!-- Orange gradient for temperature -->
+                        <linearGradient id="tempGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#FF8C42;stop-opacity:0.6" />
+                            <stop offset="100%" style="stop-color:#FF8C42;stop-opacity:0" />
+                        </linearGradient>
+                        <!-- Blue gradient for rain -->
+                        <linearGradient id="rainGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:0.5" />
+                            <stop offset="100%" style="stop-color:#4A90E2;stop-opacity:0" />
+                        </linearGradient>
+                    </defs>
+
+                    <!-- Rain gradient area -->
+                    <path
+                        d="M 0,70 {% for hour in hourly_data %}L {{ loop.index0 * (760 / (hourly_data|length - 1)) }},{{ 70 - (hour.rain_chance * 0.7) }} {% endfor %}L 760,70 Z"
+                        fill="url(#rainGradient)"
+                    />
+
+                    <!-- Rain line -->
+                    <polyline
+                        points="{% for hour in hourly_data %}{{ loop.index0 * (760 / (hourly_data|length - 1)) }},{{ 70 - (hour.rain_chance * 0.7) }} {% endfor %}"
+                        class="rain-line"
+                    />
+
+                    <!-- Temperature gradient area -->
+                    <path
+                        d="M 0,70 {% for hour in hourly_data %}L {{ loop.index0 * (760 / (hourly_data|length - 1)) }},{{ 60 - ((hour.temp - temp_min) / (temp_max - temp_min) * 50) }} {% endfor %}L 760,70 Z"
+                        fill="url(#tempGradient)"
+                    />
+
+                    <!-- Temperature line -->
+                    <polyline
+                        points="{% for hour in hourly_data %}{{ loop.index0 * (760 / (hourly_data|length - 1)) }},{{ 60 - ((hour.temp - temp_min) / (temp_max - temp_min) * 50) }} {% endfor %}"
+                        class="temp-line"
+                    />
+
+                    <!-- Temperature points -->
+                    {% for hour in hourly_data %}
+                    <circle
+                        cx="{{ loop.index0 * (760 / (hourly_data|length - 1)) }}"
+                        cy="{{ 60 - ((hour.temp - temp_min) / (temp_max - temp_min) * 50) }}"
+                        r="3"
+                        class="temp-point"
+                    />
+                    {% endfor %}
+                </svg>
+
+                <!-- Time labels -->
+                <div class="time-labels">
+                    {% for hour in hourly_data %}
+                    {% if loop.index0 % 2 == 0 %}
+                    <div class="time-label" style="left: {{ loop.index0 * (100 / (hourly_data|length - 1)) }}%">{{ hour.time }}</div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Y-axis labels - Rain % (Right) -->
+            <div class="y-axis-right">
+                <div class="y-label">100%</div>
+                <div class="y-label-mid">50%</div>
+                <div class="y-label">0%</div>
+            </div>
+        </div>
+
+        <!-- 7-Day Forecast -->
+        <div class="forecast-section">
+            {% for day in forecast %}
+            <div class="forecast-card">
+                <div class="forecast-day">{{ day.day_name }}</div>
+                <div class="forecast-icon-container">
+                    <img src="icons/{{ day.icon }}.png" alt="Weather" class="forecast-icon">
+                </div>
+                <div class="forecast-temp">{{ day.max_temp }} / {{ day.min_temp }}°</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">{{ last_updated }}</div>
+    </div>
+</body>
+</html>
