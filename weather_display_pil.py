@@ -74,6 +74,11 @@ class WeatherDisplay:
 
     def load_icon(self, icon_name, size):
         """Load and resize an icon"""
+        # Convert night icons to day icons (e.g., 04n -> 04d)
+        if icon_name.endswith('n'):
+            icon_name = icon_name[:-1] + 'd'
+            print(f"  Converting night icon to day version: {icon_name}")
+
         icon_path = f"icons/{icon_name}.png"
         if not os.path.exists(icon_path):
             print(f"Warning: Icon {icon_path} not found")
