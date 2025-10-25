@@ -23,27 +23,42 @@ class WeatherDisplay:
         self.width = self.display.width
         self.height = self.display.height
 
-        # Colors - use grayscale for better e-ink rendering
+        # Colors - pure black and white for e-ink
         self.BLACK = (0, 0, 0)
         self.WHITE = (255, 255, 255)
-        self.GRAY_LIGHT = (245, 245, 245)
-        self.GRAY_MID = (153, 153, 153)
-        self.GRAY_DARK = (102, 102, 102)
         self.BORDER = (221, 221, 221)
 
-        # Try to load fonts
+        # Try to load Inter fonts (fallback to DejaVu if not available)
         try:
-            self.font_location = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 28)
-            self.font_date = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
-            self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 52)
-            self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 28)
-            self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
-            self.font_detail_label = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 11)
-            self.font_detail_value = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 15)
-            self.font_forecast_day = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 13)
-            self.font_forecast_temp = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 11)
-            self.font_axis = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 9)
-            self.font_footer = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 9)
+            # Try Inter first
+            self.font_location = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 32)
+            self.font_date = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 14)
+            self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 72)
+            self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 32)
+            self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 12)
+            self.font_detail_label = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 11)
+            self.font_detail_value = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 15)
+            self.font_forecast_day = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 14)
+            self.font_forecast_temp = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Medium.ttf", 12)
+            self.font_axis = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 9)
+            self.font_footer = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 9)
+        except:
+            try:
+                # Fallback to DejaVu
+                self.font_location = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 32)
+                self.font_date = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
+                self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 72)
+                self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 32)
+                self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
+                self.font_detail_label = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 11)
+                self.font_detail_value = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 15)
+                self.font_forecast_day = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 14)
+                self.font_forecast_temp = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
+                self.font_axis = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 9)
+                self.font_footer = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 9)
+            except Exception as e:
+                print(f"Warning: Could not load fonts: {e}")
+                print("Using default fonts")
         except Exception as e:
             print(f"Warning: Could not load fonts: {e}")
             print("Using default fonts")
@@ -93,32 +108,34 @@ class WeatherDisplay:
         bbox = draw.textbbox((0, 0), current_date, font=self.font_date)
         text_width = bbox[2] - bbox[0]
         x = (self.width - text_width) // 2
-        draw.text((x, 48), current_date, font=self.font_date, fill=self.GRAY_DARK)
+        draw.text((x, 52), current_date, font=self.font_date, fill=self.BLACK)
 
-    def draw_current_weather(self, img, draw, weather_data, y_start=70):
+    def draw_current_weather(self, img, draw, weather_data, y_start=75):
         """Draw current weather section with icon and temperature"""
         current = weather_data['current']
 
-        # Left side - Large icon (130x130)
-        icon = self.load_icon(current['icon'], 130)
-        img.paste(icon, (35, y_start), icon if icon.mode == 'RGBA' else None)
+        # Left side - Larger icon (160x160)
+        icon = self.load_icon(current['icon'], 160)
+        img.paste(icon, (25, y_start - 10), icon if icon.mode == 'RGBA' else None)
 
         # Temperature next to icon
-        temp_x = 185
-        temp_y = y_start + 20
+        temp_x = 205
+        temp_y = y_start
 
-        # Main temperature
-        temp_text = f"{current['temperature']}°"
+        # Main temperature (just the number)
+        temp_text = f"{current['temperature']}"
         draw.text((temp_x, temp_y), temp_text, font=self.font_temp_large, fill=self.BLACK)
 
-        # Unit (smaller, superscript-ish)
+        # Get the width of the temperature number to position degree symbol
         bbox = draw.textbbox((temp_x, temp_y), temp_text, font=self.font_temp_large)
-        unit_x = bbox[2] - 25  # Position after temperature
-        draw.text((unit_x, temp_y + 8), "F", font=self.font_temp_unit, fill=self.BLACK)
+        degree_x = bbox[2] + 2
+
+        # Degree symbol and F (proper sizing)
+        draw.text((degree_x, temp_y), "°F", font=self.font_temp_unit, fill=self.BLACK)
 
         # Feels like
         feels_text = f"Feels Like {current['feels_like']}°"
-        draw.text((temp_x, temp_y + 70), feels_text, font=self.font_feels, fill=self.GRAY_DARK)
+        draw.text((temp_x, temp_y + 90), feels_text, font=self.font_feels, fill=self.BLACK)
 
     def draw_details(self, img, draw, weather_data, y_start=70):
         """Draw two columns of weather details with icons"""
@@ -151,7 +168,7 @@ class WeatherDisplay:
             icon = self.load_icon(icon_name, 26)
             img.paste(icon, (col1_x, y + 5), icon if icon.mode == 'RGBA' else None)
             # Draw label and value
-            draw.text((col1_x + 41, y), label, font=self.font_detail_label, fill=self.GRAY_MID)
+            draw.text((col1_x + 41, y), label, font=self.font_detail_label, fill=self.BLACK)
             draw.text((col1_x + 41, y + 14), value, font=self.font_detail_value, fill=self.BLACK)
 
         # Draw column 2
@@ -161,7 +178,7 @@ class WeatherDisplay:
             icon = self.load_icon(icon_name, 26)
             img.paste(icon, (col2_x, y + 5), icon if icon.mode == 'RGBA' else None)
             # Draw label and value
-            draw.text((col2_x + 41, y), label, font=self.font_detail_label, fill=self.GRAY_MID)
+            draw.text((col2_x + 41, y), label, font=self.font_detail_label, fill=self.BLACK)
             draw.text((col2_x + 41, y + 14), value, font=self.font_detail_value, fill=self.BLACK)
 
     def draw_graph_section(self, draw, hourly_data, temp_min, temp_max, y_start=215):
@@ -180,12 +197,12 @@ class WeatherDisplay:
                       fill=self.WHITE, outline=self.BORDER, width=1)
 
         # Y-axis labels (left - temperature)
-        draw.text((20, graph_y), f"{temp_max}°F", font=self.font_axis, fill=self.GRAY_DARK)
-        draw.text((20, graph_y + graph_height - 10), f"{temp_min}°F", font=self.font_axis, fill=self.GRAY_DARK)
+        draw.text((20, graph_y), f"{temp_max}°F", font=self.font_axis, fill=self.BLACK)
+        draw.text((20, graph_y + graph_height - 10), f"{temp_min}°F", font=self.font_axis, fill=self.BLACK)
 
         # Y-axis labels (right - rain %)
-        draw.text((self.width - 45, graph_y), "100%", font=self.font_axis, fill=self.GRAY_DARK)
-        draw.text((self.width - 38, graph_y + graph_height - 10), "0%", font=self.font_axis, fill=self.GRAY_DARK)
+        draw.text((self.width - 45, graph_y), "100%", font=self.font_axis, fill=self.BLACK)
+        draw.text((self.width - 38, graph_y + graph_height - 10), "0%", font=self.font_axis, fill=self.BLACK)
 
         # Calculate points for temperature line
         temps = [h['temp'] for h in hourly_data]
@@ -219,7 +236,7 @@ class WeatherDisplay:
                 bbox = draw.textbbox((0, 0), time_text, font=self.font_axis)
                 text_width = bbox[2] - bbox[0]
                 draw.text((int(px - text_width // 2), label_y), time_text,
-                         font=self.font_axis, fill=self.GRAY_DARK)
+                         font=self.font_axis, fill=self.BLACK)
 
     def draw_forecast(self, img, draw, forecast_data, y_start=315):
         """Draw 7-day forecast cards"""
@@ -246,26 +263,32 @@ class WeatherDisplay:
         """Draw a single forecast card"""
         # Card background with border
         draw.rectangle([x, y, x + width, y + height],
-                      fill=self.WHITE, outline=self.GRAY_MID, width=2)
+                      fill=self.WHITE, outline=self.BLACK, width=2)
 
         # Day name (centered)
         day_name = day_data['day_name']
         bbox = draw.textbbox((0, 0), day_name, font=self.font_forecast_day)
         text_width = bbox[2] - bbox[0]
-        draw.text((x + (width - text_width) // 2, y + 8), day_name,
+        draw.text((x + (width - text_width) // 2, y + 10), day_name,
                  font=self.font_forecast_day, fill=self.BLACK)
 
-        # Weather icon (centered, 40x40)
-        icon = self.load_icon(day_data['icon'], 40)
-        icon_x = x + (width - 40) // 2
-        icon_y = y + 30
-        img.paste(icon, (icon_x, icon_y), icon if icon.mode == 'RGBA' else None)
+        # Weather icon (centered, 50x50 for better visibility)
+        icon_size = 50
+        icon = self.load_icon(day_data['icon'], icon_size)
+        icon_x = x + (width - icon_size) // 2
+        icon_y = y + 32
+
+        # Ensure icon pastes correctly
+        if icon and icon.mode == 'RGBA':
+            img.paste(icon, (icon_x, icon_y), icon)
+        else:
+            img.paste(icon, (icon_x, icon_y))
 
         # Temperature range (centered)
         temp_text = f"{day_data['max_temp']} / {day_data['min_temp']}°"
         bbox = draw.textbbox((0, 0), temp_text, font=self.font_forecast_temp)
         text_width = bbox[2] - bbox[0]
-        draw.text((x + (width - text_width) // 2, y + 78), temp_text,
+        draw.text((x + (width - text_width) // 2, y + 85), temp_text,
                  font=self.font_forecast_temp, fill=self.BLACK)
 
     def prepare_template_data(self, weather_data):
@@ -321,8 +344,8 @@ class WeatherDisplay:
                 print("Could not prepare template data")
                 return
 
-            # Create image with light gray background
-            img = Image.new("RGB", (self.width, self.height), self.GRAY_LIGHT)
+            # Create image with pure white background
+            img = Image.new("RGB", (self.width, self.height), self.WHITE)
             draw = ImageDraw.Draw(img)
 
             # Draw all sections
@@ -337,7 +360,7 @@ class WeatherDisplay:
             bbox = draw.textbbox((0, 0), footer_text, font=self.font_footer)
             text_width = bbox[2] - bbox[0]
             draw.text((self.width - text_width - 15, self.height - 15), footer_text,
-                     font=self.font_footer, fill=self.GRAY_MID)
+                     font=self.font_footer, fill=self.BLACK)
 
             # Save for debugging
             img.save('weather_display.png')
