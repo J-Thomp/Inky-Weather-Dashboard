@@ -233,14 +233,18 @@ class WeatherDisplay:
                 draw.text((int(px - text_width // 2), label_y), time_text,
                          font=self.font_axis, fill=self.BLACK)
 
-    def draw_forecast(self, img, draw, forecast_data, y_start=325):
+    def draw_forecast(self, img, draw, forecast_data, y_start=340):
         """Draw 7-day forecast cards"""
         if not forecast_data:
+            print("Warning: No forecast data available")
             return
 
         daily_forecasts = forecast_data[:7]
         if not daily_forecasts:
+            print("Warning: No daily forecasts in data")
             return
+
+        print(f"Drawing {len(daily_forecasts)} forecast cards")
 
         # Calculate card dimensions
         cards_per_row = len(daily_forecasts)
@@ -248,10 +252,11 @@ class WeatherDisplay:
         gap_spacing = 6 * (cards_per_row - 1)
         available_width = self.width - total_spacing - gap_spacing
         card_width = available_width // cards_per_row
-        card_height = 105
+        card_height = 110
 
         for i, day in enumerate(daily_forecasts):
             card_x = 15 + i * (card_width + 6)
+            print(f"Forecast day {i}: {day.get('day_name', 'Unknown')} - Icon: {day.get('icon', 'N/A')}")
             self.draw_forecast_card(img, draw, day, card_x, y_start, card_width, card_height)
 
     def draw_forecast_card(self, img, draw, day_data, x, y, width, height):
@@ -286,18 +291,37 @@ class WeatherDisplay:
         draw.text((x + (width - text_width) // 2, y + 10), day_name,
                  font=self.font_forecast_day, fill=self.BLACK)
 
-        # Weather icon (centered, 55x55 for better visibility)
-        icon_size = 55
+        # Weather icon (centered, 60x60 for better visibility)
+        icon_size = 60
         icon_code = day_data.get('icon', '01d')
-        icon = self.load_icon(icon_code, icon_size)
-        icon_x = x + (width - icon_size) // 2
-        icon_y = y + 30
 
-        # Ensure icon pastes correctly
-        if icon and icon.mode == 'RGBA':
-            img.paste(icon, (icon_x, icon_y), icon)
-        else:
-            img.paste(icon, (icon_x, icon_y))
+        print(f"  Loading icon: {icon_code} at size {icon_size}")
+
+        icon = self.load_icon(icon_code, icon_size)
+        icon_x = int(x + (width - icon_size) // 2)
+        icon_y = int(y + 32)
+
+        # Convert icon to have proper alpha channel and paste
+        if icon:
+            try:
+                # Ensure icon is in RGBA mode
+                if icon.mode != 'RGBA':
+                    icon = icon.convert('RGBA')
+
+                # Create a white background for the icon area to ensure visibility
+                icon_bg = Image.new('RGB', (icon.width, icon.height), (255, 255, 255))
+
+                # Composite the icon onto white background using alpha channel
+                icon_bg.paste(icon, (0, 0), icon)
+
+                # Paste the composited icon
+                img.paste(icon_bg, (icon_x, icon_y))
+                print(f"  Icon pasted at ({icon_x}, {icon_y})")
+            except Exception as e:
+                print(f"  Error pasting icon: {e}")
+                # Draw a placeholder circle if icon fails
+                draw.ellipse([icon_x, icon_y, icon_x + 40, icon_y + 40],
+                           outline=self.BLACK, width=2)
 
         # Temperature range (centered)
         temp_text = f"{day_data['max_temp']} / {day_data['min_temp']}°"
@@ -368,7 +392,7 @@ class WeatherDisplay:
             self.draw_current_weather(img, draw, data, y_start=70)
             self.draw_details(img, draw, data, y_start=70)
             self.draw_graph_section(draw, data['hourly_data'], data['temp_min'], data['temp_max'], y_start=215)
-            self.draw_forecast(img, draw, data['forecast'], y_start=325)
+            self.draw_forecast(img, draw, data['forecast'], y_start=340)
 
             # Footer - last updated
             footer_text = data['last_updated']
