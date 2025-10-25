@@ -9,7 +9,7 @@ import time
 import logging
 from datetime import datetime
 from weather_api import WeatherAPI
-from weather_display_html import WeatherDisplay
+from weather_display_pil import WeatherDisplay
 from config import UPDATE_INTERVAL_MINUTES
 
 # Set up logging
