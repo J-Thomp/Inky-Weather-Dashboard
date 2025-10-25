@@ -59,21 +59,18 @@ class WeatherDisplay:
             except Exception as e:
                 print(f"Warning: Could not load fonts: {e}")
                 print("Using default fonts")
-        except Exception as e:
-            print(f"Warning: Could not load fonts: {e}")
-            print("Using default fonts")
-            # Fallback to default
-            self.font_location = ImageFont.load_default()
-            self.font_date = ImageFont.load_default()
-            self.font_temp_large = ImageFont.load_default()
-            self.font_temp_unit = ImageFont.load_default()
-            self.font_feels = ImageFont.load_default()
-            self.font_detail_label = ImageFont.load_default()
-            self.font_detail_value = ImageFont.load_default()
-            self.font_forecast_day = ImageFont.load_default()
-            self.font_forecast_temp = ImageFont.load_default()
-            self.font_axis = ImageFont.load_default()
-            self.font_footer = ImageFont.load_default()
+                # Fallback to default
+                self.font_location = ImageFont.load_default()
+                self.font_date = ImageFont.load_default()
+                self.font_temp_large = ImageFont.load_default()
+                self.font_temp_unit = ImageFont.load_default()
+                self.font_feels = ImageFont.load_default()
+                self.font_detail_label = ImageFont.load_default()
+                self.font_detail_value = ImageFont.load_default()
+                self.font_forecast_day = ImageFont.load_default()
+                self.font_forecast_temp = ImageFont.load_default()
+                self.font_axis = ImageFont.load_default()
+                self.font_footer = ImageFont.load_default()
 
     def load_icon(self, icon_name, size):
         """Load and resize an icon"""
