@@ -23,19 +23,22 @@ class WeatherDisplay:
         self.width = self.display.width
         self.height = self.display.height
 
-        # Colors - pure black and white for e-ink
-        self.BLACK = (0, 0, 0)
-        self.WHITE = (255, 255, 255)
-        self.BORDER = (221, 221, 221)
+        # Colors - Dark mode theme
+        self.WHITE = (255, 255, 255)  # Text color
+        self.BLACK = (0, 0, 0)        # Dark background base
+        self.DARK_BLUE = (20, 30, 48)  # Dark blue for gradient
+        self.BORDER = (100, 100, 120)  # Lighter border for dark mode
+        self.TEXT_SECONDARY = (200, 200, 220)  # Slightly dimmed text
 
         # Try to load Inter fonts (fallback to DejaVu if not available)
         try:
             # Try Inter first
             self.font_location = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 32)
-            self.font_date = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 14)
+            self.font_date = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 16)
             self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 72)
             self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 32)
             self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 12)
+            self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Medium.ttf", 14)
             self.font_detail_label = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 11)
             self.font_detail_value = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 15)
             self.font_forecast_day = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 14)
@@ -46,10 +49,11 @@ class WeatherDisplay:
             try:
                 # Fallback to DejaVu
                 self.font_location = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 32)
-                self.font_date = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
+                self.font_date = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16)
                 self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 72)
                 self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 32)
                 self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
+                self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
                 self.font_detail_label = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 11)
                 self.font_detail_value = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 15)
                 self.font_forecast_day = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 14)
@@ -109,18 +113,18 @@ class WeatherDisplay:
 
     def draw_header(self, draw, city, country, current_date):
         """Draw centered header with location and date"""
-        # Location
+        # Location - moved up
         location = f"{city}, {country}"
         bbox = draw.textbbox((0, 0), location, font=self.font_location)
         text_width = bbox[2] - bbox[0]
         x = (self.width - text_width) // 2
-        draw.text((x, 15), location, font=self.font_location, fill=self.BLACK)
+        draw.text((x, 10), location, font=self.font_location, fill=self.WHITE)
 
-        # Date
+        # Date - larger font
         bbox = draw.textbbox((0, 0), current_date, font=self.font_date)
         text_width = bbox[2] - bbox[0]
         x = (self.width - text_width) // 2
-        draw.text((x, 52), current_date, font=self.font_date, fill=self.BLACK)
+        draw.text((x, 48), current_date, font=self.font_date, fill=self.TEXT_SECONDARY)
 
     def draw_current_weather(self, img, draw, weather_data, y_start=75):
         """Draw current weather section with icon and temperature"""
@@ -136,18 +140,22 @@ class WeatherDisplay:
 
         # Main temperature (just the number)
         temp_text = f"{current['temperature']}"
-        draw.text((temp_x, temp_y), temp_text, font=self.font_temp_large, fill=self.BLACK)
+        draw.text((temp_x, temp_y), temp_text, font=self.font_temp_large, fill=self.WHITE)
 
         # Get the width of the temperature number to position degree symbol
         bbox = draw.textbbox((temp_x, temp_y), temp_text, font=self.font_temp_large)
         degree_x = bbox[2] + 2
 
         # Degree symbol and F (proper sizing)
-        draw.text((degree_x, temp_y), "°F", font=self.font_temp_unit, fill=self.BLACK)
+        draw.text((degree_x, temp_y), "°F", font=self.font_temp_unit, fill=self.WHITE)
+
+        # Weather description
+        description_text = current.get('description', 'Clear')
+        draw.text((temp_x, temp_y + 80), description_text, font=self.font_description, fill=self.TEXT_SECONDARY)
 
         # Feels like
         feels_text = f"Feels Like {current['feels_like']}°"
-        draw.text((temp_x, temp_y + 90), feels_text, font=self.font_feels, fill=self.BLACK)
+        draw.text((temp_x, temp_y + 100), feels_text, font=self.font_feels, fill=self.TEXT_SECONDARY)
 
     def draw_details(self, img, draw, weather_data, y_start=70):
         """Draw two columns of weather details with icons"""
@@ -180,8 +188,8 @@ class WeatherDisplay:
             icon = self.load_icon(icon_name, 32)
             img.paste(icon, (col1_x, y + 2), icon if icon.mode == 'RGBA' else None)
             # Draw label and value with bigger fonts
-            draw.text((col1_x + 45, y), label, font=self.font_detail_label, fill=self.BLACK)
-            draw.text((col1_x + 45, y + 16), value, font=self.font_detail_value, fill=self.BLACK)
+            draw.text((col1_x + 45, y), label, font=self.font_detail_label, fill=self.TEXT_SECONDARY)
+            draw.text((col1_x + 45, y + 16), value, font=self.font_detail_value, fill=self.WHITE)
 
         # Draw column 2 - with larger icons
         for i, (icon_name, label, value) in enumerate(details_col2):
@@ -190,8 +198,8 @@ class WeatherDisplay:
             icon = self.load_icon(icon_name, 32)
             img.paste(icon, (col2_x, y + 2), icon if icon.mode == 'RGBA' else None)
             # Draw label and value with bigger fonts
-            draw.text((col2_x + 45, y), label, font=self.font_detail_label, fill=self.BLACK)
-            draw.text((col2_x + 45, y + 16), value, font=self.font_detail_value, fill=self.BLACK)
+            draw.text((col2_x + 45, y), label, font=self.font_detail_label, fill=self.TEXT_SECONDARY)
+            draw.text((col2_x + 45, y + 16), value, font=self.font_detail_value, fill=self.WHITE)
 
     def draw_graph_section(self, draw, hourly_data, temp_min, temp_max, y_start=215):
         """Draw temperature graph with time labels"""
@@ -207,12 +215,12 @@ class WeatherDisplay:
         # No border/background - just draw on white canvas
 
         # Y-axis labels (left - temperature)
-        draw.text((20, graph_y), f"{temp_max}°F", font=self.font_axis, fill=self.BLACK)
-        draw.text((20, graph_y + graph_height - 10), f"{temp_min}°F", font=self.font_axis, fill=self.BLACK)
+        draw.text((20, graph_y), f"{temp_max}°F", font=self.font_axis, fill=self.TEXT_SECONDARY)
+        draw.text((20, graph_y + graph_height - 10), f"{temp_min}°F", font=self.font_axis, fill=self.TEXT_SECONDARY)
 
         # Y-axis labels (right - rain %)
-        draw.text((self.width - 45, graph_y), "100%", font=self.font_axis, fill=self.BLACK)
-        draw.text((self.width - 38, graph_y + graph_height - 10), "0%", font=self.font_axis, fill=self.BLACK)
+        draw.text((self.width - 45, graph_y), "100%", font=self.font_axis, fill=self.TEXT_SECONDARY)
+        draw.text((self.width - 38, graph_y + graph_height - 10), "0%", font=self.font_axis, fill=self.TEXT_SECONDARY)
 
         # Calculate points for temperature line
         temps = [h['temp'] for h in hourly_data]
@@ -246,7 +254,7 @@ class WeatherDisplay:
                 bbox = draw.textbbox((0, 0), time_text, font=self.font_axis)
                 text_width = bbox[2] - bbox[0]
                 draw.text((int(px - text_width // 2), label_y), time_text,
-                         font=self.font_axis, fill=self.BLACK)
+                         font=self.font_axis, fill=self.TEXT_SECONDARY)
 
     def draw_forecast(self, img, draw, forecast_data, y_start=340):
         """Draw 7-day forecast cards"""
@@ -279,32 +287,33 @@ class WeatherDisplay:
         # Draw rounded rectangle by drawing a rectangle and circles at corners
         radius = 6
 
-        # Main rectangle body
+        # Main rectangle body - semi-transparent dark background
+        card_bg = (15, 20, 30)  # Very dark blue
         draw.rectangle([x + radius, y, x + width - radius, y + height],
-                      fill=self.WHITE, outline=None)
+                      fill=card_bg, outline=None)
         draw.rectangle([x, y + radius, x + width, y + height - radius],
-                      fill=self.WHITE, outline=None)
+                      fill=card_bg, outline=None)
 
-        # Draw border
+        # Draw border with lighter color for dark mode
         # Top and bottom lines
-        draw.line([(x + radius, y), (x + width - radius, y)], fill=self.BLACK, width=2)
-        draw.line([(x + radius, y + height), (x + width - radius, y + height)], fill=self.BLACK, width=2)
+        draw.line([(x + radius, y), (x + width - radius, y)], fill=self.BORDER, width=2)
+        draw.line([(x + radius, y + height), (x + width - radius, y + height)], fill=self.BORDER, width=2)
         # Left and right lines
-        draw.line([(x, y + radius), (x, y + height - radius)], fill=self.BLACK, width=2)
-        draw.line([(x + width, y + radius), (x + width, y + height - radius)], fill=self.BLACK, width=2)
+        draw.line([(x, y + radius), (x, y + height - radius)], fill=self.BORDER, width=2)
+        draw.line([(x + width, y + radius), (x + width, y + height - radius)], fill=self.BORDER, width=2)
 
         # Draw corner arcs
-        draw.arc([x, y, x + radius*2, y + radius*2], start=180, end=270, fill=self.BLACK, width=2)
-        draw.arc([x + width - radius*2, y, x + width, y + radius*2], start=270, end=360, fill=self.BLACK, width=2)
-        draw.arc([x, y + height - radius*2, x + radius*2, y + height], start=90, end=180, fill=self.BLACK, width=2)
-        draw.arc([x + width - radius*2, y + height - radius*2, x + width, y + height], start=0, end=90, fill=self.BLACK, width=2)
+        draw.arc([x, y, x + radius*2, y + radius*2], start=180, end=270, fill=self.BORDER, width=2)
+        draw.arc([x + width - radius*2, y, x + width, y + radius*2], start=270, end=360, fill=self.BORDER, width=2)
+        draw.arc([x, y + height - radius*2, x + radius*2, y + height], start=90, end=180, fill=self.BORDER, width=2)
+        draw.arc([x + width - radius*2, y + height - radius*2, x + width, y + height], start=0, end=90, fill=self.BORDER, width=2)
 
         # Day name (centered)
         day_name = day_data['day_name']
         bbox = draw.textbbox((0, 0), day_name, font=self.font_forecast_day)
         text_width = bbox[2] - bbox[0]
         draw.text((x + (width - text_width) // 2, y + 10), day_name,
-                 font=self.font_forecast_day, fill=self.BLACK)
+                 font=self.font_forecast_day, fill=self.WHITE)
 
         # Weather icon (centered, 60x60 for better visibility)
         icon_size = 60
@@ -323,14 +332,8 @@ class WeatherDisplay:
                 if icon.mode != 'RGBA':
                     icon = icon.convert('RGBA')
 
-                # Create a white background for the icon area to ensure visibility
-                icon_bg = Image.new('RGB', (icon.width, icon.height), (255, 255, 255))
-
-                # Composite the icon onto white background using alpha channel
-                icon_bg.paste(icon, (0, 0), icon)
-
-                # Paste the composited icon
-                img.paste(icon_bg, (icon_x, icon_y))
+                # Paste icon with transparency support
+                img.paste(icon, (icon_x, icon_y), icon)
                 print(f"  Icon pasted at ({icon_x}, {icon_y})")
             except Exception as e:
                 print(f"  Error pasting icon: {e}")
@@ -343,7 +346,7 @@ class WeatherDisplay:
         bbox = draw.textbbox((0, 0), temp_text, font=self.font_forecast_temp)
         text_width = bbox[2] - bbox[0]
         draw.text((x + (width - text_width) // 2, y + 88), temp_text,
-                 font=self.font_forecast_temp, fill=self.BLACK)
+                 font=self.font_forecast_temp, fill=self.WHITE)
 
     def prepare_template_data(self, weather_data):
         """Prepare data for display rendering"""
@@ -398,9 +401,19 @@ class WeatherDisplay:
                 print("Could not prepare template data")
                 return
 
-            # Create image with pure white background
-            img = Image.new("RGB", (self.width, self.height), self.WHITE)
+            # Create image with dark gradient background
+            img = Image.new("RGB", (self.width, self.height))
             draw = ImageDraw.Draw(img)
+
+            # Draw gradient background from dark blue/black to black
+            for y in range(self.height):
+                # Calculate gradient factor (0 at top, 1 at bottom)
+                factor = y / self.height
+                # Interpolate between DARK_BLUE and BLACK
+                r = int(self.DARK_BLUE[0] * (1 - factor) + self.BLACK[0] * factor)
+                g = int(self.DARK_BLUE[1] * (1 - factor) + self.BLACK[1] * factor)
+                b = int(self.DARK_BLUE[2] * (1 - factor) + self.BLACK[2] * factor)
+                draw.line([(0, y), (self.width, y)], fill=(r, g, b))
 
             # Draw all sections
             self.draw_header(draw, data['city'], data['country'], data['current_date'])
@@ -414,7 +427,7 @@ class WeatherDisplay:
             bbox = draw.textbbox((0, 0), footer_text, font=self.font_footer)
             text_width = bbox[2] - bbox[0]
             draw.text((self.width - text_width - 15, self.height - 15), footer_text,
-                     font=self.font_footer, fill=self.BLACK)
+                     font=self.font_footer, fill=self.TEXT_SECONDARY)
 
             # Enhance contrast and brightness for e-ink display
             # Increase contrast for better visibility
