@@ -4,7 +4,7 @@ PIL-based Weather Display for Inky Impression
 Renders weather dashboard with actual PNG icons to match HTML design
 """
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageEnhance, ImageFilter
 from inky.auto import auto
 from datetime import datetime
 import os
@@ -73,7 +73,7 @@ class WeatherDisplay:
                 self.font_footer = ImageFont.load_default()
 
     def load_icon(self, icon_name, size):
-        """Load and resize an icon"""
+        """Load and resize an icon with high quality"""
         # Convert night icons to day icons (e.g., 04n -> 04d)
         if icon_name.endswith('n'):
             icon_name = icon_name[:-1] + 'd'
@@ -90,8 +90,18 @@ class WeatherDisplay:
             # Convert to RGBA if needed
             if icon.mode != 'RGBA':
                 icon = icon.convert('RGBA')
-            # Resize maintaining aspect ratio
-            icon.thumbnail((size, size), Image.Resampling.LANCZOS)
+
+            # Use high-quality resize instead of thumbnail
+            icon = icon.resize((size, size), Image.Resampling.LANCZOS)
+
+            # Enhance sharpness for better display on e-ink
+            enhancer = ImageEnhance.Sharpness(icon)
+            icon = enhancer.enhance(1.5)  # Increase sharpness by 50%
+
+            # Boost color saturation slightly for better visibility
+            color_enhancer = ImageEnhance.Color(icon)
+            icon = color_enhancer.enhance(1.2)
+
             return icon
         except Exception as e:
             print(f"Error loading icon {icon_path}: {e}")
@@ -405,6 +415,15 @@ class WeatherDisplay:
             text_width = bbox[2] - bbox[0]
             draw.text((self.width - text_width - 15, self.height - 15), footer_text,
                      font=self.font_footer, fill=self.BLACK)
+
+            # Enhance contrast and brightness for e-ink display
+            # Increase contrast for better visibility
+            contrast_enhancer = ImageEnhance.Contrast(img)
+            img = contrast_enhancer.enhance(1.3)  # 30% more contrast
+
+            # Slightly increase brightness
+            brightness_enhancer = ImageEnhance.Brightness(img)
+            img = brightness_enhancer.enhance(1.1)  # 10% brighter
 
             # Save for debugging
             img.save('weather_display.png')
