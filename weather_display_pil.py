@@ -35,13 +35,13 @@ class WeatherDisplay:
             # Try Inter first
             self.font_location = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 32)
             self.font_date = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 16)
-            self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 72)
-            self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 32)
-            self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 12)
-            self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Medium.ttf", 14)
+            self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 80)
+            self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 36)
+            self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 14)
+            self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Medium.ttf", 16)
             self.font_detail_label = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 11)
             self.font_detail_value = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 15)
-            self.font_forecast_day = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 14)
+            self.font_forecast_day = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 16)
             self.font_forecast_temp = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Medium.ttf", 12)
             self.font_axis = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 9)
             self.font_footer = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 9)
@@ -50,13 +50,13 @@ class WeatherDisplay:
                 # Fallback to DejaVu
                 self.font_location = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 32)
                 self.font_date = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16)
-                self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 72)
-                self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 32)
-                self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
-                self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
+                self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 80)
+                self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 36)
+                self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
+                self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16)
                 self.font_detail_label = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 11)
                 self.font_detail_value = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 15)
-                self.font_forecast_day = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 14)
+                self.font_forecast_day = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 16)
                 self.font_forecast_temp = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
                 self.font_axis = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 9)
                 self.font_footer = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 9)
@@ -126,17 +126,17 @@ class WeatherDisplay:
         x = (self.width - text_width) // 2
         draw.text((x, 48), current_date, font=self.font_date, fill=self.TEXT_SECONDARY)
 
-    def draw_current_weather(self, img, draw, weather_data, y_start=75):
+    def draw_current_weather(self, img, draw, weather_data, y_start=80):
         """Draw current weather section with icon and temperature"""
         current = weather_data['current']
 
         # Left side - Larger icon (160x160)
         icon = self.load_icon(current['icon'], 160)
-        img.paste(icon, (25, y_start - 10), icon if icon.mode == 'RGBA' else None)
+        img.paste(icon, (25, y_start - 5), icon if icon.mode == 'RGBA' else None)
 
         # Temperature next to icon
         temp_x = 205
-        temp_y = y_start
+        temp_y = y_start + 5
 
         # Main temperature (just the number)
         temp_text = f"{current['temperature']}"
@@ -235,37 +235,42 @@ class WeatherDisplay:
             py = graph_y + graph_height - ((temp - temp_min) / temp_range) * graph_height
             points.append((int(px), int(py)))
 
-        # Draw gradient fill under the temperature line
+        # Draw gradient fill under the temperature line using alpha blending
         ORANGE = (255, 140, 66)
-        ORANGE_TRANSPARENT = (255, 140, 66, 100)
 
         if len(points) > 1:
-            # Create polygon points for gradient area (line + bottom edge)
+            # Create a temporary RGBA image for the gradient
+            overlay = Image.new('RGBA', (self.width, self.height), (0, 0, 0, 0))
+            overlay_draw = ImageDraw.Draw(overlay)
+
+            # Create polygon for the area under the curve
             polygon_points = points.copy()
-            # Add bottom-right and bottom-left corners to close the polygon
-            polygon_points.append((int(graph_x + graph_width), int(graph_y + graph_height)))
-            polygon_points.append((int(graph_x), int(graph_y + graph_height)))
+            polygon_points.append((int(points[-1][0]), int(graph_y + graph_height)))
+            polygon_points.append((int(points[0][0]), int(graph_y + graph_height)))
 
-            # Draw gradient fill by drawing multiple horizontal lines with decreasing opacity
-            for i in range(len(points) - 1):
-                x1, y1 = points[i]
-                x2, y2 = points[i + 1]
+            # Draw multiple layers with decreasing opacity to create gradient
+            num_layers = 30
+            for layer in range(num_layers):
+                # Calculate alpha (more transparent as we go down)
+                alpha = int(80 * (1 - layer / num_layers))
 
-                # Draw gradient fill between this segment
-                for scan_y in range(int(min(y1, y2)), int(graph_y + graph_height)):
-                    # Calculate opacity based on height (more transparent at bottom)
-                    alpha = int(100 * (1 - (scan_y - min(y1, y2)) / (graph_y + graph_height - min(y1, y2))))
-                    if alpha > 0:
-                        # Interpolate x position at this y
-                        if y2 != y1:
-                            t = (scan_y - y1) / (y2 - y1)
-                            scan_x = int(x1 + t * (x2 - x1))
-                        else:
-                            scan_x = x1
+                # Calculate Y offset for this layer
+                y_offset = int((graph_height * layer) / num_layers)
 
-                        # Draw line from segment to right edge with fading opacity
-                        color = (ORANGE[0], ORANGE[1], ORANGE[2])
-                        draw.line([(x1, scan_y), (scan_x, scan_y)], fill=color, width=1)
+                # Create polygon points for this layer
+                layer_points = []
+                for px, py in points:
+                    layer_points.append((px, py + y_offset))
+
+                # Add bottom edge
+                layer_points.append((int(points[-1][0]), int(graph_y + graph_height)))
+                layer_points.append((int(points[0][0]), int(graph_y + graph_height)))
+
+                # Draw this layer
+                overlay_draw.polygon(layer_points, fill=(*ORANGE, alpha))
+
+            # Paste the gradient overlay onto the main image
+            img.paste(overlay, (0, 0), overlay)
 
             # Draw the temperature line on top (smooth continuous line)
             draw.line(points, fill=ORANGE, width=3, joint='curve')
@@ -295,23 +300,23 @@ class WeatherDisplay:
 
         print(f"Drawing {len(daily_forecasts)} forecast cards (starting with tomorrow)")
 
-        # Calculate card dimensions
+        # Calculate card dimensions with more spacing
         cards_per_row = len(daily_forecasts)
         total_spacing = 15 * 2  # Left and right padding
-        gap_spacing = 6 * (cards_per_row - 1)
+        gap_spacing = 10 * (cards_per_row - 1)  # Increased from 6 to 10
         available_width = self.width - total_spacing - gap_spacing
         card_width = available_width // cards_per_row
         card_height = 110
 
         for i, day in enumerate(daily_forecasts):
-            card_x = 15 + i * (card_width + 6)
+            card_x = 15 + i * (card_width + 10)  # Increased from 6 to 10
             print(f"Forecast day {i}: {day.get('day_name', 'Unknown')} - Icon: {day.get('icon', 'N/A')}")
             self.draw_forecast_card(img, draw, day, card_x, y_start, card_width, card_height)
 
     def draw_forecast_card(self, img, draw, day_data, x, y, width, height):
         """Draw a single forecast card with rounded corners"""
         # Draw rounded rectangle by drawing a rectangle and circles at corners
-        radius = 6
+        radius = 10  # Increased from 6 to 10 for more rounded corners
 
         # Main rectangle body - semi-transparent dark background
         card_bg = (15, 20, 30)  # Very dark blue
@@ -443,8 +448,8 @@ class WeatherDisplay:
 
             # Draw all sections
             self.draw_header(draw, data['city'], data['country'], data['current_date'])
-            self.draw_current_weather(img, draw, data, y_start=70)
-            self.draw_details(img, draw, data, y_start=70)
+            self.draw_current_weather(img, draw, data, y_start=80)
+            self.draw_details(img, draw, data, y_start=80)
             self.draw_graph_section(draw, data['hourly_data'], data['temp_min'], data['temp_max'], y_start=235)
             self.draw_forecast(img, draw, data['forecast'], y_start=350)
 
