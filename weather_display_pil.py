@@ -35,10 +35,10 @@ class WeatherDisplay:
             # Try Inter first
             self.font_location = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 32)
             self.font_date = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 16)
-            self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 80)
-            self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 36)
-            self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 14)
-            self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Medium.ttf", 16)
+            self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 86)
+            self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 38)
+            self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 15)
+            self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Medium.ttf", 17)
             self.font_detail_label = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 13)
             self.font_detail_value = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 17)
             self.font_forecast_day = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 16)
@@ -50,10 +50,10 @@ class WeatherDisplay:
                 # Fallback to DejaVu
                 self.font_location = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 32)
                 self.font_date = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16)
-                self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 80)
-                self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 36)
-                self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
-                self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16)
+                self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 86)
+                self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 38)
+                self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 15)
+                self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 17)
                 self.font_detail_label = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 13)
                 self.font_detail_value = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 17)
                 self.font_forecast_day = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 16)
@@ -126,7 +126,7 @@ class WeatherDisplay:
         x = (self.width - text_width) // 2
         draw.text((x, 48), current_date, font=self.font_date, fill=self.TEXT_SECONDARY)
 
-    def draw_current_weather(self, img, draw, weather_data, y_start=80):
+    def draw_current_weather(self, img, draw, weather_data, y_start=85):
         """Draw current weather section with icon and temperature"""
         current = weather_data['current']
 
@@ -136,7 +136,7 @@ class WeatherDisplay:
 
         # Temperature next to icon
         temp_x = 205
-        temp_y = y_start + 5
+        temp_y = y_start + 8
 
         # Main temperature (just the number)
         temp_text = f"{current['temperature']}"
@@ -151,11 +151,11 @@ class WeatherDisplay:
 
         # Weather description
         description_text = current.get('description', 'Clear')
-        draw.text((temp_x, temp_y + 80), description_text, font=self.font_description, fill=self.TEXT_SECONDARY)
+        draw.text((temp_x, temp_y + 88), description_text, font=self.font_description, fill=self.TEXT_SECONDARY)
 
         # Feels like
         feels_text = f"Feels Like {current['feels_like']}°"
-        draw.text((temp_x, temp_y + 100), feels_text, font=self.font_feels, fill=self.TEXT_SECONDARY)
+        draw.text((temp_x, temp_y + 110), feels_text, font=self.font_feels, fill=self.TEXT_SECONDARY)
 
     def draw_details(self, img, draw, weather_data, y_start=70):
         """Draw two columns of weather details with icons"""
@@ -165,7 +165,7 @@ class WeatherDisplay:
         col1_x = 425
         col2_x = 625
         detail_y = y_start
-        row_spacing = 46
+        row_spacing = 50  # Increased from 46 to 50 for more vertical spacing
 
         # Column 1 details
         details_col1 = [
@@ -372,11 +372,11 @@ class WeatherDisplay:
                 draw.ellipse([icon_x, icon_y, icon_x + 40, icon_y + 40],
                            outline=self.BLACK, width=2)
 
-        # Temperature range (centered)
+        # Temperature range (centered, shifted down)
         temp_text = f"{day_data['max_temp']} / {day_data['min_temp']}°"
         bbox = draw.textbbox((0, 0), temp_text, font=self.font_forecast_temp)
         text_width = bbox[2] - bbox[0]
-        draw.text((x + (width - text_width) // 2, y + 88), temp_text,
+        draw.text((x + (width - text_width) // 2, y + 92), temp_text,
                  font=self.font_forecast_temp, fill=self.WHITE)
 
     def prepare_template_data(self, weather_data):
@@ -448,8 +448,8 @@ class WeatherDisplay:
 
             # Draw all sections
             self.draw_header(draw, data['city'], data['country'], data['current_date'])
-            self.draw_current_weather(img, draw, data, y_start=80)
-            self.draw_details(img, draw, data, y_start=80)
+            self.draw_current_weather(img, draw, data, y_start=85)
+            self.draw_details(img, draw, data, y_start=85)
             self.draw_graph_section(img, draw, data['hourly_data'], data['temp_min'], data['temp_max'], y_start=235)
             self.draw_forecast(img, draw, data['forecast'], y_start=350)
 
