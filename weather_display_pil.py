@@ -287,20 +287,20 @@ class WeatherDisplay:
                          font=self.font_axis, fill=self.TEXT_SECONDARY)
 
     def draw_forecast(self, img, draw, forecast_data, y_start=350):
-        """Draw 6-day forecast cards"""
+        """Draw forecast cards starting with tomorrow (5 days total)"""
         if not forecast_data:
             print("Warning: No forecast data available")
             return
 
-        # OpenWeather API only provides 6 days total (today + 5 days)
-        # Show all 6 available days: Today through Day+5
-        daily_forecasts = forecast_data[:6]  # Get all 6 available days
+        # Skip today (index 0) and show the next 5 days (indices 1-5)
+        # This gives us: Tomorrow, Day+2, Day+3, Day+4, Day+5
+        daily_forecasts = forecast_data[1:6]  # Skip today, get next 5 days
         if not daily_forecasts:
             print("Warning: No daily forecasts in data")
             return
 
         # Debug output to verify we're showing the right days
-        print(f"Drawing {len(daily_forecasts)} forecast cards")
+        print(f"Drawing {len(daily_forecasts)} forecast cards (starting with tomorrow)")
         if daily_forecasts:
             print(f"First card date: {daily_forecasts[0].get('date', 'Unknown')} ({daily_forecasts[0].get('day_name', 'Unknown')})")
             print(f"Last card date: {daily_forecasts[-1].get('date', 'Unknown')} ({daily_forecasts[-1].get('day_name', 'Unknown')})")
