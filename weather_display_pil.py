@@ -39,11 +39,11 @@ class WeatherDisplay:
             self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 36)
             self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 14)
             self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Medium.ttf", 16)
-            self.font_detail_label = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 11)
-            self.font_detail_value = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 15)
+            self.font_detail_label = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 13)
+            self.font_detail_value = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 17)
             self.font_forecast_day = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 16)
             self.font_forecast_temp = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Medium.ttf", 12)
-            self.font_axis = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 9)
+            self.font_axis = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 11)
             self.font_footer = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 9)
         except:
             try:
@@ -54,11 +54,11 @@ class WeatherDisplay:
                 self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 36)
                 self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
                 self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16)
-                self.font_detail_label = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 11)
-                self.font_detail_value = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 15)
+                self.font_detail_label = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 13)
+                self.font_detail_value = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 17)
                 self.font_forecast_day = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 16)
                 self.font_forecast_temp = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
-                self.font_axis = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 9)
+                self.font_axis = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 11)
                 self.font_footer = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 9)
             except Exception as e:
                 print(f"Warning: Could not load fonts: {e}")
@@ -184,22 +184,22 @@ class WeatherDisplay:
         # Draw column 1 - with larger icons
         for i, (icon_name, label, value) in enumerate(details_col1):
             y = detail_y + i * row_spacing
-            # Load and paste larger icon (32x32)
-            icon = self.load_icon(icon_name, 32)
-            img.paste(icon, (col1_x, y + 2), icon if icon.mode == 'RGBA' else None)
+            # Load and paste larger icon (38x38, increased from 32)
+            icon = self.load_icon(icon_name, 38)
+            img.paste(icon, (col1_x, y), icon if icon.mode == 'RGBA' else None)
             # Draw label and value with bigger fonts
-            draw.text((col1_x + 45, y), label, font=self.font_detail_label, fill=self.TEXT_SECONDARY)
-            draw.text((col1_x + 45, y + 16), value, font=self.font_detail_value, fill=self.WHITE)
+            draw.text((col1_x + 50, y + 2), label, font=self.font_detail_label, fill=self.TEXT_SECONDARY)
+            draw.text((col1_x + 50, y + 18), value, font=self.font_detail_value, fill=self.WHITE)
 
         # Draw column 2 - with larger icons
         for i, (icon_name, label, value) in enumerate(details_col2):
             y = detail_y + i * row_spacing
-            # Load and paste larger icon (32x32)
-            icon = self.load_icon(icon_name, 32)
-            img.paste(icon, (col2_x, y + 2), icon if icon.mode == 'RGBA' else None)
+            # Load and paste larger icon (38x38, increased from 32)
+            icon = self.load_icon(icon_name, 38)
+            img.paste(icon, (col2_x, y), icon if icon.mode == 'RGBA' else None)
             # Draw label and value with bigger fonts
-            draw.text((col2_x + 45, y), label, font=self.font_detail_label, fill=self.TEXT_SECONDARY)
-            draw.text((col2_x + 45, y + 16), value, font=self.font_detail_value, fill=self.WHITE)
+            draw.text((col2_x + 50, y + 2), label, font=self.font_detail_label, fill=self.TEXT_SECONDARY)
+            draw.text((col2_x + 50, y + 18), value, font=self.font_detail_value, fill=self.WHITE)
 
     def draw_graph_section(self, img, draw, hourly_data, temp_min, temp_max, y_start=235):
         """Draw temperature graph with time labels"""
