@@ -70,16 +70,21 @@ class WeatherDashboard:
     
     def run_scheduler(self):
         """Run the scheduled updates"""
-        # Schedule weather updates
+        # Schedule regular weather updates every 30 minutes
         schedule.every(UPDATE_INTERVAL_MINUTES).minutes.do(self.update_weather)
-        
+
+        # Schedule midnight update to refresh the day
+        schedule.every().day.at("00:00").do(self.update_weather)
+
         logging.info("Scheduler started. Press Ctrl+C to stop.")
-        
+        logging.info(f"Weather updates: Every {UPDATE_INTERVAL_MINUTES} minutes")
+        logging.info("Midnight refresh: Enabled (00:00 daily)")
+
         try:
             while True:
                 schedule.run_pending()
                 time.sleep(60)  # Check every minute
-                
+
         except KeyboardInterrupt:
             logging.info("Weather dashboard stopped by user")
         except Exception as e:
