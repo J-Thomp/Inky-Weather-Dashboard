@@ -293,12 +293,16 @@ class WeatherDisplay:
             return
 
         # Skip today (index 0) and get the next 6 days (indices 1-6)
+        # This ensures we show tomorrow through 6 days out
         daily_forecasts = forecast_data[1:7]
         if not daily_forecasts:
             print("Warning: No daily forecasts in data")
             return
 
+        # Debug output to verify we're showing the right days
         print(f"Drawing {len(daily_forecasts)} forecast cards (starting with tomorrow)")
+        if daily_forecasts:
+            print(f"First card date: {daily_forecasts[0].get('date', 'Unknown')} ({daily_forecasts[0].get('day_name', 'Unknown')})")
 
         # Calculate card dimensions with more spacing
         cards_per_row = len(daily_forecasts)

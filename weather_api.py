@@ -101,7 +101,7 @@ class WeatherAPI:
             pass
         return {'index': 0, 'description': 'N/A'}
     
-    def get_forecast(self, days=7):
+    def get_forecast(self, days=8):
         """Fetch weather forecast for specified number of days"""
         url = f"{self.base_url}/forecast"
         params = {
