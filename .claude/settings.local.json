@@ -14,7 +14,8 @@
       "Bash(python test_forecast_display.py:*)",
       "Bash(dir:*)",
       "Bash(copy:*)",
-      "Bash(python verify_forecast_data.py:*)"
+      "Bash(python verify_forecast_data.py:*)",
+      "Bash(chmod:*)"
     ],
     "deny": [],
     "ask": []
