@@ -292,9 +292,9 @@ class WeatherDisplay:
             print("Warning: No forecast data available")
             return
 
-        # Skip today (index 0) and get the next 6 days (indices 1-6)
-        # This ensures we show tomorrow through 6 days out
-        daily_forecasts = forecast_data[1:7]
+        # Show 6 days starting from tomorrow (skip today at index 0)
+        # Get indices 1-6: Tomorrow, Day+2, Day+3, Day+4, Day+5, Day+6
+        daily_forecasts = forecast_data[1:7]  # Skip today, get next 6 days
         if not daily_forecasts:
             print("Warning: No daily forecasts in data")
             return
