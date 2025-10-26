@@ -287,20 +287,20 @@ class WeatherDisplay:
                          font=self.font_axis, fill=self.TEXT_SECONDARY)
 
     def draw_forecast(self, img, draw, forecast_data, y_start=350):
-        """Draw forecast cards starting with tomorrow (5 days total)"""
+        """Draw forecast cards starting with Today (6 days total)"""
         if not forecast_data:
             print("Warning: No forecast data available")
             return
 
-        # Skip today (index 0) and show the next 5 days (indices 1-5)
-        # This gives us: Tomorrow, Day+2, Day+3, Day+4, Day+5
-        daily_forecasts = forecast_data[1:6]  # Skip today, get next 5 days
+        # Show 6 days starting with today (indices 0-5)
+        # This gives us: Today, Tomorrow, Day+2, Day+3, Day+4, Day+5
+        daily_forecasts = forecast_data[0:6]  # Get first 6 days including today
         if not daily_forecasts:
             print("Warning: No daily forecasts in data")
             return
 
         # Debug output to verify we're showing the right days
-        print(f"Drawing {len(daily_forecasts)} forecast cards (starting with tomorrow)")
+        print(f"Drawing {len(daily_forecasts)} forecast cards (starting with today)")
         if daily_forecasts:
             print(f"First card date: {daily_forecasts[0].get('date', 'Unknown')} ({daily_forecasts[0].get('day_name', 'Unknown')})")
             print(f"Last card date: {daily_forecasts[-1].get('date', 'Unknown')} ({daily_forecasts[-1].get('day_name', 'Unknown')})")
@@ -315,8 +315,12 @@ class WeatherDisplay:
 
         for i, day in enumerate(daily_forecasts):
             card_x = 15 + i * (card_width + 10)  # Increased from 6 to 10
-            print(f"Forecast day {i}: {day.get('day_name', 'Unknown')} - Icon: {day.get('icon', 'N/A')}")
-            self.draw_forecast_card(img, draw, day, card_x, y_start, card_width, card_height)
+            # Override day name for first card to show "Today"
+            day_display = day.copy()
+            if i == 0:
+                day_display['day_name'] = 'Today'
+            print(f"Forecast day {i}: {day_display.get('day_name', 'Unknown')} - Icon: {day.get('icon', 'N/A')}")
+            self.draw_forecast_card(img, draw, day_display, card_x, y_start, card_width, card_height)
 
     def draw_forecast_card(self, img, draw, day_data, x, y, width, height):
         """Draw a single forecast card with rounded corners"""

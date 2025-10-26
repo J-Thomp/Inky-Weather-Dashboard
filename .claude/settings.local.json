@@ -8,7 +8,10 @@
       "Bash(python html_weather_preview.py:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(python weather_display_pil.py:*)",
+      "Bash(python weather_api.py:*)",
+      "Bash(python test_forecast_display.py:*)"
     ],
     "deny": [],
     "ask": []
