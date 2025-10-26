@@ -201,7 +201,7 @@ class WeatherDisplay:
             draw.text((col2_x + 45, y), label, font=self.font_detail_label, fill=self.TEXT_SECONDARY)
             draw.text((col2_x + 45, y + 16), value, font=self.font_detail_value, fill=self.WHITE)
 
-    def draw_graph_section(self, draw, hourly_data, temp_min, temp_max, y_start=215):
+    def draw_graph_section(self, draw, hourly_data, temp_min, temp_max, y_start=235):
         """Draw temperature graph with time labels"""
         if not hourly_data or len(hourly_data) < 2:
             return
@@ -235,15 +235,40 @@ class WeatherDisplay:
             py = graph_y + graph_height - ((temp - temp_min) / temp_range) * graph_height
             points.append((int(px), int(py)))
 
-        # Draw temperature line with orange color
+        # Draw gradient fill under the temperature line
         ORANGE = (255, 140, 66)
-        if len(points) > 1:
-            draw.line(points, fill=ORANGE, width=2)
+        ORANGE_TRANSPARENT = (255, 140, 66, 100)
 
-        # Draw points
-        for point in points:
-            draw.ellipse([point[0]-3, point[1]-3, point[0]+3, point[1]+3],
-                        fill=ORANGE, outline=self.BLACK, width=1)
+        if len(points) > 1:
+            # Create polygon points for gradient area (line + bottom edge)
+            polygon_points = points.copy()
+            # Add bottom-right and bottom-left corners to close the polygon
+            polygon_points.append((int(graph_x + graph_width), int(graph_y + graph_height)))
+            polygon_points.append((int(graph_x), int(graph_y + graph_height)))
+
+            # Draw gradient fill by drawing multiple horizontal lines with decreasing opacity
+            for i in range(len(points) - 1):
+                x1, y1 = points[i]
+                x2, y2 = points[i + 1]
+
+                # Draw gradient fill between this segment
+                for scan_y in range(int(min(y1, y2)), int(graph_y + graph_height)):
+                    # Calculate opacity based on height (more transparent at bottom)
+                    alpha = int(100 * (1 - (scan_y - min(y1, y2)) / (graph_y + graph_height - min(y1, y2))))
+                    if alpha > 0:
+                        # Interpolate x position at this y
+                        if y2 != y1:
+                            t = (scan_y - y1) / (y2 - y1)
+                            scan_x = int(x1 + t * (x2 - x1))
+                        else:
+                            scan_x = x1
+
+                        # Draw line from segment to right edge with fading opacity
+                        color = (ORANGE[0], ORANGE[1], ORANGE[2])
+                        draw.line([(x1, scan_y), (scan_x, scan_y)], fill=color, width=1)
+
+            # Draw the temperature line on top (smooth continuous line)
+            draw.line(points, fill=ORANGE, width=3, joint='curve')
 
         # Time labels below graph
         label_y = graph_y + graph_height + 8
@@ -256,18 +281,19 @@ class WeatherDisplay:
                 draw.text((int(px - text_width // 2), label_y), time_text,
                          font=self.font_axis, fill=self.TEXT_SECONDARY)
 
-    def draw_forecast(self, img, draw, forecast_data, y_start=340):
-        """Draw 7-day forecast cards"""
+    def draw_forecast(self, img, draw, forecast_data, y_start=350):
+        """Draw 6-day forecast cards starting with tomorrow"""
         if not forecast_data:
             print("Warning: No forecast data available")
             return
 
-        daily_forecasts = forecast_data[:7]
+        # Skip today (index 0) and get the next 6 days (indices 1-6)
+        daily_forecasts = forecast_data[1:7]
         if not daily_forecasts:
             print("Warning: No daily forecasts in data")
             return
 
-        print(f"Drawing {len(daily_forecasts)} forecast cards")
+        print(f"Drawing {len(daily_forecasts)} forecast cards (starting with tomorrow)")
 
         # Calculate card dimensions
         cards_per_row = len(daily_forecasts)
@@ -419,8 +445,8 @@ class WeatherDisplay:
             self.draw_header(draw, data['city'], data['country'], data['current_date'])
             self.draw_current_weather(img, draw, data, y_start=70)
             self.draw_details(img, draw, data, y_start=70)
-            self.draw_graph_section(draw, data['hourly_data'], data['temp_min'], data['temp_max'], y_start=215)
-            self.draw_forecast(img, draw, data['forecast'], y_start=340)
+            self.draw_graph_section(draw, data['hourly_data'], data['temp_min'], data['temp_max'], y_start=235)
+            self.draw_forecast(img, draw, data['forecast'], y_start=350)
 
             # Footer - last updated
             footer_text = data['last_updated']

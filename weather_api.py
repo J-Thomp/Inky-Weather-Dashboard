@@ -143,13 +143,8 @@ class WeatherAPI:
                 # Find most common weather condition
                 most_common_weather = max(set(weather_conditions), key=weather_conditions.count)
 
-                # Use short day name
-                if i == 0:
-                    day_name = 'Today'
-                elif i == 1:
-                    day_name = 'Tomorrow'
-                else:
-                    day_name = date.strftime('%a')
+                # Always use short day name (Mon, Tue, Wed, etc.)
+                day_name = date.strftime('%a')
 
                 forecast_days.append({
                     'date': date,
