@@ -169,7 +169,26 @@ class WeatherAPI:
         """Get both current weather and forecast data"""
         current = self.get_current_weather()
         forecast = self.get_forecast()
-        
+
+        # Merge current weather into today's forecast for accurate today's data
+        if current and forecast and forecast.get('daily') and len(forecast['daily']) > 0:
+            today = datetime.now().date()
+            first_forecast_date = forecast['daily'][0]['date']
+
+            # If first forecast is today, replace it with current weather data
+            if first_forecast_date == today:
+                forecast['daily'][0] = {
+                    'date': today,
+                    'day_name': today.strftime('%a'),
+                    'min_temp': current['temp_min'],
+                    'max_temp': current['temp_max'],
+                    'description': current['description'],
+                    'icon': current['icon'],
+                    'humidity': current['humidity'],
+                    'wind_speed': current['wind_speed']
+                }
+                print(f"Updated today's forecast with current weather data: {current['temp_min']}/{current['temp_max']}°F")
+
         return {
             'current': current,
             'forecast': forecast,

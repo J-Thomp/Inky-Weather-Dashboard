@@ -11,7 +11,10 @@
       "Bash(git push)",
       "Bash(python weather_display_pil.py:*)",
       "Bash(python weather_api.py:*)",
-      "Bash(python test_forecast_display.py:*)"
+      "Bash(python test_forecast_display.py:*)",
+      "Bash(dir:*)",
+      "Bash(copy:*)",
+      "Bash(python verify_forecast_data.py:*)"
     ],
     "deny": [],
     "ask": []
