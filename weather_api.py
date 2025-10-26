@@ -135,7 +135,9 @@ class WeatherAPI:
 
             # Get daily summaries
             forecast_days = []
+            print(f"Total forecast days available: {len(daily_forecasts)}")
             for i, (date, day_forecasts) in enumerate(list(daily_forecasts.items())[:days+1]):
+                print(f"Processing day {i}: {date} ({date.strftime('%a')})")
                 # Get min/max temps and most common weather
                 temps = [f['main']['temp'] for f in day_forecasts]
                 weather_conditions = [f['weather'][0]['description'] for f in day_forecasts]
