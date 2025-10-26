@@ -201,7 +201,7 @@ class WeatherDisplay:
             draw.text((col2_x + 45, y), label, font=self.font_detail_label, fill=self.TEXT_SECONDARY)
             draw.text((col2_x + 45, y + 16), value, font=self.font_detail_value, fill=self.WHITE)
 
-    def draw_graph_section(self, draw, hourly_data, temp_min, temp_max, y_start=235):
+    def draw_graph_section(self, img, draw, hourly_data, temp_min, temp_max, y_start=235):
         """Draw temperature graph with time labels"""
         if not hourly_data or len(hourly_data) < 2:
             return
@@ -450,7 +450,7 @@ class WeatherDisplay:
             self.draw_header(draw, data['city'], data['country'], data['current_date'])
             self.draw_current_weather(img, draw, data, y_start=80)
             self.draw_details(img, draw, data, y_start=80)
-            self.draw_graph_section(draw, data['hourly_data'], data['temp_min'], data['temp_max'], y_start=235)
+            self.draw_graph_section(img, draw, data['hourly_data'], data['temp_min'], data['temp_max'], y_start=235)
             self.draw_forecast(img, draw, data['forecast'], y_start=350)
 
             # Footer - last updated
