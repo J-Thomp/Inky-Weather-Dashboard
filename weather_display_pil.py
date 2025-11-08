@@ -34,11 +34,11 @@ class WeatherDisplay:
         try:
             # Try Inter first - adjusted sizes
             self.font_location = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 30)
-            self.font_date = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 15)
-            self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 78)
-            self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 36)
-            self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 14)
-            self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Medium.ttf", 16)
+            self.font_date = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 17)
+            self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 82)
+            self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 38)
+            self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 15)
+            self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Medium.ttf", 17)
             self.font_detail_label = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 13)
             self.font_detail_value = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 16)
             self.font_forecast_day = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 14)
@@ -49,11 +49,11 @@ class WeatherDisplay:
             try:
                 # Fallback to DejaVu - adjusted sizes
                 self.font_location = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 30)
-                self.font_date = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 15)
-                self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 78)
-                self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 36)
-                self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
-                self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16)
+                self.font_date = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 17)
+                self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 82)
+                self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 38)
+                self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 15)
+                self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 17)
                 self.font_detail_label = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 13)
                 self.font_detail_value = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 16)
                 self.font_forecast_day = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 14)
@@ -127,22 +127,22 @@ class WeatherDisplay:
         x = (self.width - text_width) // 2
         draw.text((x, 58), current_date, font=self.font_date, fill=self.TEXT_SECONDARY)
 
-        # Timestamp in top right corner, even with location, shifted left
+        # Timestamp in top right corner, even with location, shifted left more
         bbox = draw.textbbox((0, 0), last_updated, font=self.font_detail_label)
         text_width = bbox[2] - bbox[0]
-        draw.text((self.width - text_width - 55, location_y), last_updated,
+        draw.text((self.width - text_width - 70, location_y), last_updated,
                  font=self.font_detail_label, fill=self.TEXT_SECONDARY)
 
     def draw_current_weather(self, img, draw, weather_data, y_start=100):
         """Draw current weather section with icon and temperature"""
         current = weather_data['current']
 
-        # Left side - larger icon, shifted right
-        icon = self.load_icon(current['icon'], 145)
-        img.paste(icon, (55, y_start - 5), icon if icon.mode == 'RGBA' else None)
+        # Left side - larger icon, shifted right more
+        icon = self.load_icon(current['icon'], 152)
+        img.paste(icon, (65, y_start - 5), icon if icon.mode == 'RGBA' else None)
 
-        # Temperature next to icon - shifted right
-        temp_x = 215
+        # Temperature next to icon - shifted right more
+        temp_x = 232
         temp_y = y_start + 8
 
         # Main temperature (just the number)
@@ -172,7 +172,7 @@ class WeatherDisplay:
         col1_x = 430
         col2_x = 590
         detail_y = y_start
-        row_spacing = 45  # Slightly more spacing for larger fonts
+        row_spacing = 50  # More vertical spacing between rows
 
         # Column 1 details
         details_col1 = [
@@ -301,16 +301,16 @@ class WeatherDisplay:
                 )
                 img.paste(overlay, (0, 0), overlay)
 
-        # Time labels below graph - bigger font
+        # Time labels below graph - smaller font
         label_y = graph_y + graph_height + 10
         for i, hour in enumerate(hourly_data):
             if i % 2 == 0:  # Every other label
                 px = graph_x + i * step
                 time_text = hour['time']
-                bbox = draw.textbbox((0, 0), time_text, font=self.font_detail_label)
+                bbox = draw.textbbox((0, 0), time_text, font=self.font_axis)
                 text_width = bbox[2] - bbox[0]
                 draw.text((int(px - text_width // 2), label_y), time_text,
-                         font=self.font_detail_label, fill=self.TEXT_SECONDARY)
+                         font=self.font_axis, fill=self.TEXT_SECONDARY)
 
     def draw_forecast(self, img, draw, forecast_data, y_start=370):
         """Draw forecast cards starting with Today (6 days total)"""
