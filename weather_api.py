@@ -130,7 +130,8 @@ class WeatherAPI:
                     hourly_data.append({
                         'time': datetime.fromtimestamp(item['dt']),
                         'temp': round(item['main']['temp']),
-                        'icon': item['weather'][0]['icon']
+                        'icon': item['weather'][0]['icon'],
+                        'rain_chance': round(item.get('pop', 0) * 100)  # Probability of precipitation as percentage
                     })
 
             # Get daily summaries

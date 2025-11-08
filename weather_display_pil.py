@@ -132,7 +132,7 @@ class WeatherDisplay:
         draw.text((self.width - text_width - 12, 17), last_updated,
                  font=self.font_footer, fill=self.TEXT_SECONDARY)
 
-    def draw_current_weather(self, img, draw, weather_data, y_start=85):
+    def draw_current_weather(self, img, draw, weather_data, y_start=100):
         """Draw current weather section with icon and temperature"""
         current = weather_data['current']
 
@@ -163,7 +163,7 @@ class WeatherDisplay:
         feels_text = f"Feels Like {current['feels_like']}°"
         draw.text((temp_x, temp_y + 90), feels_text, font=self.font_feels, fill=self.TEXT_SECONDARY)
 
-    def draw_details(self, img, draw, weather_data, y_start=75):
+    def draw_details(self, img, draw, weather_data, y_start=90):
         """Draw two columns of weather details with icons"""
         current = weather_data['current']
 
@@ -207,7 +207,7 @@ class WeatherDisplay:
             draw.text((col2_x + 38, y + 2), label, font=self.font_detail_label, fill=self.TEXT_SECONDARY)
             draw.text((col2_x + 38, y + 16), value, font=self.font_detail_value, fill=self.WHITE)
 
-    def draw_graph_section(self, img, draw, hourly_data, temp_min, temp_max, y_start=220):
+    def draw_graph_section(self, img, draw, hourly_data, temp_min, temp_max, y_start=245):
         """Draw temperature graph with time labels"""
         if not hourly_data or len(hourly_data) < 2:
             return
@@ -280,6 +280,25 @@ class WeatherDisplay:
 
             # Draw the temperature line on top (smooth continuous line)
             draw.line(points, fill=ORANGE, width=3, joint='curve')
+
+        # Draw rain chance bars
+        BLUE = (100, 150, 255)
+        bar_width = max(int(step * 0.6), 3)  # 60% of step width, minimum 3px
+        for i, hour in enumerate(hourly_data):
+            rain_pct = hour.get('rain_chance', 0)
+            if rain_pct > 0:
+                px = graph_x + i * step
+                # Bar height proportional to rain percentage
+                bar_height = int((rain_pct / 100) * graph_height)
+                bar_top = graph_y + graph_height - bar_height
+                # Draw semi-transparent blue bar
+                overlay = Image.new('RGBA', (self.width, self.height), (0, 0, 0, 0))
+                overlay_draw = ImageDraw.Draw(overlay)
+                overlay_draw.rectangle(
+                    [int(px - bar_width/2), bar_top, int(px + bar_width/2), graph_y + graph_height],
+                    fill=(*BLUE, 120)
+                )
+                img.paste(overlay, (0, 0), overlay)
 
         # Time labels below graph
         label_y = graph_y + graph_height + 8
@@ -405,11 +424,11 @@ class WeatherDisplay:
         # Format hourly data for graph
         hourly_data = []
         if forecast.get('hourly'):
-            for hour in forecast['hourly'][:11]:  # Take first 11 hours
+            for hour in forecast['hourly'][:8]:  # Take 8 x 3-hour intervals = 24 hours
                 hourly_data.append({
                     'time': hour['time'].strftime('%I %p').lstrip('0').lower(),
                     'temp': hour['temp'],
-                    'rain_chance': 0  # Need to add rain chance to API data
+                    'rain_chance': hour.get('rain_chance', 0)  # Probability of precipitation
                 })
 
         # Calculate temp range for graph scaling
@@ -463,9 +482,9 @@ class WeatherDisplay:
 
             # Draw all sections
             self.draw_header(draw, data['city'], data['country'], data['current_date'], data['last_updated'])
-            self.draw_current_weather(img, draw, data, y_start=85)
-            self.draw_details(img, draw, data, y_start=75)
-            self.draw_graph_section(img, draw, data['hourly_data'], data['temp_min'], data['temp_max'], y_start=220)
+            self.draw_current_weather(img, draw, data, y_start=100)
+            self.draw_details(img, draw, data, y_start=90)
+            self.draw_graph_section(img, draw, data['hourly_data'], data['temp_min'], data['temp_max'], y_start=245)
             self.draw_forecast(img, draw, data['forecast'], y_start=370)
 
             # Enhance contrast and brightness for e-ink display
