@@ -37,8 +37,8 @@ class WeatherDisplay:
             self.font_date = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 17)
             self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 86)
             self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 40)
-            self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 18)
-            self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Medium.ttf", 18)
+            self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 16)
+            self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Medium.ttf", 17)
             self.font_detail_label = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 13)
             self.font_detail_value = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 16)
             self.font_forecast_day = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 16)
@@ -52,8 +52,8 @@ class WeatherDisplay:
                 self.font_date = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 17)
                 self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 86)
                 self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 40)
-                self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18)
-                self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18)
+                self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16)
+                self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 17)
                 self.font_detail_label = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 13)
                 self.font_detail_value = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 16)
                 self.font_forecast_day = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 16)
@@ -156,13 +156,13 @@ class WeatherDisplay:
         # Degree symbol and F (proper sizing)
         draw.text((degree_x, temp_y), "°F", font=self.font_temp_unit, fill=self.WHITE)
 
-        # Weather description - moved up slightly
+        # Weather description - shifted down to give main temp space
         description_text = current.get('description', 'Clear')
-        draw.text((temp_x, temp_y + 82), description_text, font=self.font_description, fill=self.TEXT_SECONDARY)
+        draw.text((temp_x, temp_y + 88), description_text, font=self.font_description, fill=self.TEXT_SECONDARY)
 
-        # Feels like - moved up slightly
+        # Feels like - shifted down to give main temp space
         feels_text = f"Feels Like {current['feels_like']}°"
-        draw.text((temp_x, temp_y + 102), feels_text, font=self.font_feels, fill=self.TEXT_SECONDARY)
+        draw.text((temp_x, temp_y + 110), feels_text, font=self.font_feels, fill=self.TEXT_SECONDARY)
 
     def draw_details(self, img, draw, weather_data, y_start=90):
         """Draw two columns of weather details with icons"""
