@@ -320,7 +320,7 @@ class WeatherDisplay:
         card_height = 90  # Smaller height
 
         for i, day in enumerate(daily_forecasts):
-            card_x = 45 + i * (card_width + 3)  # Shifted left a bit
+            card_x = 42 + i * (card_width + 3)  # Shifted left a bit more
             # Override day name for first card to show "Today"
             day_display = day.copy()
             if i == 0:
