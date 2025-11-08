@@ -311,16 +311,16 @@ class WeatherDisplay:
             print(f"First card date: {daily_forecasts[0].get('date', 'Unknown')} ({daily_forecasts[0].get('day_name', 'Unknown')})")
             print(f"Last card date: {daily_forecasts[-1].get('date', 'Unknown')} ({daily_forecasts[-1].get('day_name', 'Unknown')})")
 
-        # Calculate card dimensions - very tight horizontal spacing
+        # Calculate card dimensions - significant margins to fit within frame
         cards_per_row = len(daily_forecasts)
-        total_spacing = 25 * 2  # Left and right padding to fit within frame
+        total_spacing = 45 * 2  # Much larger left and right padding to fit frame
         gap_spacing = 3 * (cards_per_row - 1)  # Minimal spacing between cards
         available_width = self.width - total_spacing - gap_spacing
         card_width = available_width // cards_per_row
-        card_height = 100  # Slightly smaller height
+        card_height = 90  # Smaller height
 
         for i, day in enumerate(daily_forecasts):
-            card_x = 25 + i * (card_width + 3)  # Very tight spacing
+            card_x = 45 + i * (card_width + 3)  # Cards start further from edge
             # Override day name for first card to show "Today"
             day_display = day.copy()
             if i == 0:
@@ -358,18 +358,18 @@ class WeatherDisplay:
         day_name = day_data['day_name']
         bbox = draw.textbbox((0, 0), day_name, font=self.font_forecast_day)
         text_width = bbox[2] - bbox[0]
-        draw.text((x + (width - text_width) // 2, y + 8), day_name,
+        draw.text((x + (width - text_width) // 2, y + 6), day_name,
                  font=self.font_forecast_day, fill=self.WHITE)
 
-        # Weather icon (centered, smaller 52x52)
-        icon_size = 52
+        # Weather icon (centered, smaller 45x45)
+        icon_size = 45
         icon_code = day_data.get('icon', '01d')
 
         print(f"  Loading icon: {icon_code} at size {icon_size}")
 
         icon = self.load_icon(icon_code, icon_size)
         icon_x = int(x + (width - icon_size) // 2)
-        icon_y = int(y + 28)
+        icon_y = int(y + 25)
 
         # Convert icon to have proper alpha channel and paste
         if icon:
@@ -391,7 +391,7 @@ class WeatherDisplay:
         temp_text = f"{day_data['max_temp']} / {day_data['min_temp']}°"
         bbox = draw.textbbox((0, 0), temp_text, font=self.font_forecast_temp)
         text_width = bbox[2] - bbox[0]
-        draw.text((x + (width - text_width) // 2, y + 83), temp_text,
+        draw.text((x + (width - text_width) // 2, y + 73), temp_text,
                  font=self.font_forecast_temp, fill=self.WHITE)
 
     def prepare_template_data(self, weather_data):
