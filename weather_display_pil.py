@@ -136,12 +136,12 @@ class WeatherDisplay:
         """Draw current weather section with icon and temperature"""
         current = weather_data['current']
 
-        # Left side - Smaller icon (130x130) with more margin
+        # Left side - icon aligned to forecast boundary (x=42)
         icon = self.load_icon(current['icon'], 130)
-        img.paste(icon, (30, y_start - 5), icon if icon.mode == 'RGBA' else None)
+        img.paste(icon, (42, y_start - 5), icon if icon.mode == 'RGBA' else None)
 
-        # Temperature next to icon - adjusted for new icon position
-        temp_x = 170
+        # Temperature next to icon
+        temp_x = 182
         temp_y = y_start + 8
 
         # Main temperature (just the number)
@@ -167,9 +167,9 @@ class WeatherDisplay:
         """Draw two columns of weather details with icons"""
         current = weather_data['current']
 
-        # Column positions - more balanced with margins
-        col1_x = 380
-        col2_x = 545
+        # Column positions - fit within forecast boundaries
+        col1_x = 400
+        col2_x = 560
         detail_y = y_start
         row_spacing = 42  # Reduced spacing
 
@@ -212,21 +212,21 @@ class WeatherDisplay:
         if not hourly_data or len(hourly_data) < 2:
             return
 
-        # Graph dimensions - with proper margins
-        graph_x = 60
-        graph_width = 660
+        # Graph dimensions - aligned to forecast card boundaries (x=42 to ~723)
+        graph_x = 75  # Start a bit in from left edge
+        graph_width = 640  # Fit within boundaries
         graph_height = 60
         graph_y = y_start + 8
 
         # No border/background - just draw on white canvas
 
         # Y-axis labels (left - temperature)
-        draw.text((25, graph_y), f"{temp_max}°F", font=self.font_axis, fill=self.TEXT_SECONDARY)
-        draw.text((25, graph_y + graph_height - 10), f"{temp_min}°F", font=self.font_axis, fill=self.TEXT_SECONDARY)
+        draw.text((42, graph_y), f"{temp_max}°F", font=self.font_axis, fill=self.TEXT_SECONDARY)
+        draw.text((42, graph_y + graph_height - 10), f"{temp_min}°F", font=self.font_axis, fill=self.TEXT_SECONDARY)
 
         # Y-axis labels (right - rain %)
-        draw.text((self.width - 50, graph_y), "100%", font=self.font_axis, fill=self.TEXT_SECONDARY)
-        draw.text((self.width - 43, graph_y + graph_height - 10), "0%", font=self.font_axis, fill=self.TEXT_SECONDARY)
+        draw.text((690, graph_y), "100%", font=self.font_axis, fill=self.TEXT_SECONDARY)
+        draw.text((697, graph_y + graph_height - 10), "0%", font=self.font_axis, fill=self.TEXT_SECONDARY)
 
         # Calculate points for temperature line
         temps = [h['temp'] for h in hourly_data]
