@@ -207,26 +207,26 @@ class WeatherDisplay:
             draw.text((col2_x + 38, y + 2), label, font=self.font_detail_label, fill=self.TEXT_SECONDARY)
             draw.text((col2_x + 38, y + 16), value, font=self.font_detail_value, fill=self.WHITE)
 
-    def draw_graph_section(self, img, draw, hourly_data, temp_min, temp_max, y_start=245):
+    def draw_graph_section(self, img, draw, hourly_data, temp_min, temp_max, y_start=260):
         """Draw temperature graph with time labels"""
         if not hourly_data or len(hourly_data) < 2:
             return
 
-        # Graph dimensions - aligned to forecast card boundaries (x=42 to ~723)
-        graph_x = 75  # Start a bit in from left edge
-        graph_width = 640  # Fit within boundaries
-        graph_height = 60
-        graph_y = y_start + 8
+        # Graph dimensions - larger and shifted down
+        graph_x = 85  # Start position for graph line
+        graph_width = 620  # Graph line width
+        graph_height = 80  # Increased height
+        graph_y = y_start + 12
 
         # No border/background - just draw on white canvas
 
-        # Y-axis labels (left - temperature)
-        draw.text((42, graph_y), f"{temp_max}°F", font=self.font_axis, fill=self.TEXT_SECONDARY)
-        draw.text((42, graph_y + graph_height - 10), f"{temp_min}°F", font=self.font_axis, fill=self.TEXT_SECONDARY)
+        # Y-axis labels (left - temperature) - outside graph area
+        draw.text((42, graph_y - 5), f"{temp_max}°F", font=self.font_detail_label, fill=self.TEXT_SECONDARY)
+        draw.text((42, graph_y + graph_height - 8), f"{temp_min}°F", font=self.font_detail_label, fill=self.TEXT_SECONDARY)
 
-        # Y-axis labels (right - rain %)
-        draw.text((690, graph_y), "100%", font=self.font_axis, fill=self.TEXT_SECONDARY)
-        draw.text((697, graph_y + graph_height - 10), "0%", font=self.font_axis, fill=self.TEXT_SECONDARY)
+        # Y-axis labels (right - rain %) - outside graph area, won't overlap
+        draw.text((graph_x + graph_width + 8, graph_y - 5), "100%", font=self.font_detail_label, fill=self.TEXT_SECONDARY)
+        draw.text((graph_x + graph_width + 8, graph_y + graph_height - 8), "0%", font=self.font_detail_label, fill=self.TEXT_SECONDARY)
 
         # Calculate points for temperature line
         temps = [h['temp'] for h in hourly_data]
@@ -300,16 +300,16 @@ class WeatherDisplay:
                 )
                 img.paste(overlay, (0, 0), overlay)
 
-        # Time labels below graph
-        label_y = graph_y + graph_height + 8
+        # Time labels below graph - bigger font
+        label_y = graph_y + graph_height + 10
         for i, hour in enumerate(hourly_data):
             if i % 2 == 0:  # Every other label
                 px = graph_x + i * step
                 time_text = hour['time']
-                bbox = draw.textbbox((0, 0), time_text, font=self.font_axis)
+                bbox = draw.textbbox((0, 0), time_text, font=self.font_detail_label)
                 text_width = bbox[2] - bbox[0]
                 draw.text((int(px - text_width // 2), label_y), time_text,
-                         font=self.font_axis, fill=self.TEXT_SECONDARY)
+                         font=self.font_detail_label, fill=self.TEXT_SECONDARY)
 
     def draw_forecast(self, img, draw, forecast_data, y_start=370):
         """Draw forecast cards starting with Today (6 days total)"""
@@ -484,7 +484,7 @@ class WeatherDisplay:
             self.draw_header(draw, data['city'], data['country'], data['current_date'], data['last_updated'])
             self.draw_current_weather(img, draw, data, y_start=100)
             self.draw_details(img, draw, data, y_start=90)
-            self.draw_graph_section(img, draw, data['hourly_data'], data['temp_min'], data['temp_max'], y_start=245)
+            self.draw_graph_section(img, draw, data['hourly_data'], data['temp_min'], data['temp_max'], y_start=260)
             self.draw_forecast(img, draw, data['forecast'], y_start=370)
 
             # Enhance contrast and brightness for e-ink display
