@@ -35,10 +35,10 @@ class WeatherDisplay:
             # Try Inter first - adjusted sizes
             self.font_location = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 30)
             self.font_date = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 15)
-            self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 70)
-            self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 32)
-            self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 12)
-            self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Medium.ttf", 14)
+            self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 78)
+            self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 36)
+            self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 14)
+            self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Medium.ttf", 16)
             self.font_detail_label = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 13)
             self.font_detail_value = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 16)
             self.font_forecast_day = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 14)
@@ -50,10 +50,10 @@ class WeatherDisplay:
                 # Fallback to DejaVu - adjusted sizes
                 self.font_location = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 30)
                 self.font_date = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 15)
-                self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 70)
-                self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 32)
-                self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
-                self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
+                self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 78)
+                self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 36)
+                self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
+                self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16)
                 self.font_detail_label = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 13)
                 self.font_detail_value = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 16)
                 self.font_forecast_day = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 14)
@@ -113,36 +113,36 @@ class WeatherDisplay:
 
     def draw_header(self, draw, city, country, current_date, last_updated):
         """Draw centered header with location and date, timestamp in top right"""
-        # Location - slightly larger and shifted down a tad
+        # Location - shifted down slightly more
         location = f"{city}, {country}"
         bbox = draw.textbbox((0, 0), location, font=self.font_location)
         text_width = bbox[2] - bbox[0]
         x = (self.width - text_width) // 2
-        location_y = 18
+        location_y = 22
         draw.text((x, location_y), location, font=self.font_location, fill=self.WHITE)
 
-        # Date - larger font, slightly down
+        # Date - shifted down slightly more
         bbox = draw.textbbox((0, 0), current_date, font=self.font_date)
         text_width = bbox[2] - bbox[0]
         x = (self.width - text_width) // 2
-        draw.text((x, 53), current_date, font=self.font_date, fill=self.TEXT_SECONDARY)
+        draw.text((x, 58), current_date, font=self.font_date, fill=self.TEXT_SECONDARY)
 
-        # Timestamp in top right corner, even with location
+        # Timestamp in top right corner, even with location, shifted left
         bbox = draw.textbbox((0, 0), last_updated, font=self.font_detail_label)
         text_width = bbox[2] - bbox[0]
-        draw.text((self.width - text_width - 42, location_y), last_updated,
+        draw.text((self.width - text_width - 55, location_y), last_updated,
                  font=self.font_detail_label, fill=self.TEXT_SECONDARY)
 
     def draw_current_weather(self, img, draw, weather_data, y_start=100):
         """Draw current weather section with icon and temperature"""
         current = weather_data['current']
 
-        # Left side - icon aligned to forecast boundary (x=42)
-        icon = self.load_icon(current['icon'], 130)
-        img.paste(icon, (42, y_start - 5), icon if icon.mode == 'RGBA' else None)
+        # Left side - larger icon, shifted right
+        icon = self.load_icon(current['icon'], 145)
+        img.paste(icon, (55, y_start - 5), icon if icon.mode == 'RGBA' else None)
 
-        # Temperature next to icon
-        temp_x = 182
+        # Temperature next to icon - shifted right
+        temp_x = 215
         temp_y = y_start + 8
 
         # Main temperature (just the number)
@@ -156,13 +156,13 @@ class WeatherDisplay:
         # Degree symbol and F (proper sizing)
         draw.text((degree_x, temp_y), "°F", font=self.font_temp_unit, fill=self.WHITE)
 
-        # Weather description
+        # Weather description - larger
         description_text = current.get('description', 'Clear')
-        draw.text((temp_x, temp_y + 72), description_text, font=self.font_description, fill=self.TEXT_SECONDARY)
+        draw.text((temp_x, temp_y + 82), description_text, font=self.font_description, fill=self.TEXT_SECONDARY)
 
-        # Feels like
+        # Feels like - larger
         feels_text = f"Feels Like {current['feels_like']}°"
-        draw.text((temp_x, temp_y + 90), feels_text, font=self.font_feels, fill=self.TEXT_SECONDARY)
+        draw.text((temp_x, temp_y + 102), feels_text, font=self.font_feels, fill=self.TEXT_SECONDARY)
 
     def draw_details(self, img, draw, weather_data, y_start=90):
         """Draw two columns of weather details with icons"""
@@ -208,7 +208,7 @@ class WeatherDisplay:
             draw.text((col2_x + 38, y + 2), label, font=self.font_detail_label, fill=self.TEXT_SECONDARY)
             draw.text((col2_x + 38, y + 16), value, font=self.font_detail_value, fill=self.WHITE)
 
-    def draw_graph_section(self, img, draw, hourly_data, temp_min, temp_max, y_start=250):
+    def draw_graph_section(self, img, draw, hourly_data, temp_min, temp_max, y_start=245):
         """Draw temperature graph with time labels"""
         if not hourly_data or len(hourly_data) < 2:
             return
@@ -485,7 +485,7 @@ class WeatherDisplay:
             self.draw_header(draw, data['city'], data['country'], data['current_date'], data['last_updated'])
             self.draw_current_weather(img, draw, data, y_start=100)
             self.draw_details(img, draw, data, y_start=90)
-            self.draw_graph_section(img, draw, data['hourly_data'], data['temp_min'], data['temp_max'], y_start=250)
+            self.draw_graph_section(img, draw, data['hourly_data'], data['temp_min'], data['temp_max'], y_start=245)
             self.draw_forecast(img, draw, data['forecast'], y_start=370)
 
             # Enhance contrast and brightness for e-ink display
