@@ -292,7 +292,7 @@ class WeatherDisplay:
                 draw.text((int(px - text_width // 2), label_y), time_text,
                          font=self.font_axis, fill=self.TEXT_SECONDARY)
 
-    def draw_forecast(self, img, draw, forecast_data, y_start=360):
+    def draw_forecast(self, img, draw, forecast_data, y_start=370):
         """Draw forecast cards starting with Today (6 days total)"""
         if not forecast_data:
             print("Warning: No forecast data available")
@@ -320,7 +320,7 @@ class WeatherDisplay:
         card_height = 90  # Smaller height
 
         for i, day in enumerate(daily_forecasts):
-            card_x = 45 + i * (card_width + 3)  # Cards start further from edge
+            card_x = 38 + i * (card_width + 3)  # Shifted left a bit from edge
             # Override day name for first card to show "Today"
             day_display = day.copy()
             if i == 0:
@@ -466,7 +466,7 @@ class WeatherDisplay:
             self.draw_current_weather(img, draw, data, y_start=85)
             self.draw_details(img, draw, data, y_start=75)
             self.draw_graph_section(img, draw, data['hourly_data'], data['temp_min'], data['temp_max'], y_start=220)
-            self.draw_forecast(img, draw, data['forecast'], y_start=360)
+            self.draw_forecast(img, draw, data['forecast'], y_start=370)
 
             # Enhance contrast and brightness for e-ink display
             # Increase contrast for better visibility
