@@ -23,10 +23,10 @@ class WeatherDisplay:
         self.width = self.display.width
         self.height = self.display.height
 
-        # Colors - Dark mode theme
+        # Colors - Matte dark theme (reduces glare)
         self.WHITE = (255, 255, 255)  # Text color
-        self.BLACK = (0, 0, 0)        # Dark background base
-        self.DARK_BLUE = (20, 30, 48)  # Dark blue for gradient
+        self.BLACK = (18, 20, 25)        # Slightly lighter black (less glare)
+        self.DARK_BLUE = (28, 35, 50)  # Muted dark blue for gradient
         self.BORDER = (100, 100, 120)  # Lighter border for dark mode
         self.TEXT_SECONDARY = (200, 200, 220)  # Slightly dimmed text
 
@@ -35,8 +35,8 @@ class WeatherDisplay:
             # Try Inter first - adjusted sizes
             self.font_location = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 30)
             self.font_date = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 17)
-            self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 86)
-            self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 40)
+            self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 90)
+            self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 42)
             self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 16)
             self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Medium.ttf", 17)
             self.font_detail_label = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 13)
@@ -50,8 +50,8 @@ class WeatherDisplay:
                 # Fallback to DejaVu - adjusted sizes
                 self.font_location = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 30)
                 self.font_date = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 17)
-                self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 86)
-                self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 40)
+                self.font_temp_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 90)
+                self.font_temp_unit = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 42)
                 self.font_feels = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16)
                 self.font_description = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 17)
                 self.font_detail_label = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 13)
@@ -137,9 +137,9 @@ class WeatherDisplay:
         """Draw current weather section with icon and temperature"""
         current = weather_data['current']
 
-        # Left side - icon moved up twice as much
+        # Left side - icon moved up and left slightly
         icon = self.load_icon(current['icon'], 152)
-        img.paste(icon, (65, y_start - 15), icon if icon.mode == 'RGBA' else None)
+        img.paste(icon, (60, y_start - 18), icon if icon.mode == 'RGBA' else None)
 
         # Temperature - moved up more
         temp_x = 232
@@ -156,13 +156,13 @@ class WeatherDisplay:
         # Degree symbol and F (proper sizing)
         draw.text((degree_x, temp_y), "°F", font=self.font_temp_unit, fill=self.WHITE)
 
-        # Weather description - shifted down to give main temp space
+        # Weather description - shifted down more for bigger temp
         description_text = current.get('description', 'Clear')
-        draw.text((temp_x, temp_y + 88), description_text, font=self.font_description, fill=self.TEXT_SECONDARY)
+        draw.text((temp_x, temp_y + 94), description_text, font=self.font_description, fill=self.TEXT_SECONDARY)
 
-        # Feels like - shifted down to give main temp space
+        # Feels like - shifted down more for bigger temp
         feels_text = f"Feels Like {current['feels_like']}°"
-        draw.text((temp_x, temp_y + 110), feels_text, font=self.font_feels, fill=self.TEXT_SECONDARY)
+        draw.text((temp_x, temp_y + 116), feels_text, font=self.font_feels, fill=self.TEXT_SECONDARY)
 
     def draw_details(self, img, draw, weather_data, y_start=90):
         """Draw two columns of weather details with icons"""
