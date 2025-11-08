@@ -311,16 +311,16 @@ class WeatherDisplay:
             print(f"First card date: {daily_forecasts[0].get('date', 'Unknown')} ({daily_forecasts[0].get('day_name', 'Unknown')})")
             print(f"Last card date: {daily_forecasts[-1].get('date', 'Unknown')} ({daily_forecasts[-1].get('day_name', 'Unknown')})")
 
-        # Calculate card dimensions - significant margins to fit within frame
+        # Calculate card dimensions - even more compression horizontally
         cards_per_row = len(daily_forecasts)
-        total_spacing = 45 * 2  # Much larger left and right padding to fit frame
+        total_spacing = 52 * 2  # Even larger left and right padding
         gap_spacing = 3 * (cards_per_row - 1)  # Minimal spacing between cards
         available_width = self.width - total_spacing - gap_spacing
         card_width = available_width // cards_per_row
         card_height = 90  # Smaller height
 
         for i, day in enumerate(daily_forecasts):
-            card_x = 38 + i * (card_width + 3)  # Shifted left a bit from edge
+            card_x = 52 + i * (card_width + 3)  # Start position matches margin
             # Override day name for first card to show "Today"
             day_display = day.copy()
             if i == 0:
