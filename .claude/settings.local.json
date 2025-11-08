@@ -15,7 +15,9 @@
       "Bash(dir:*)",
       "Bash(copy:*)",
       "Bash(python verify_forecast_data.py:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)"
     ],
     "deny": [],
     "ask": []
