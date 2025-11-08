@@ -138,10 +138,10 @@ class WeatherDisplay:
 
         # Left side - Smaller icon (130x130)
         icon = self.load_icon(current['icon'], 130)
-        img.paste(icon, (20, y_start - 5), icon if icon.mode == 'RGBA' else None)
+        img.paste(icon, (15, y_start - 5), icon if icon.mode == 'RGBA' else None)
 
-        # Temperature next to icon
-        temp_x = 165
+        # Temperature next to icon - moved closer
+        temp_x = 155
         temp_y = y_start + 8
 
         # Main temperature (just the number)
@@ -167,9 +167,9 @@ class WeatherDisplay:
         """Draw two columns of weather details with icons"""
         current = weather_data['current']
 
-        # Column positions - adjusted for smaller layout
-        col1_x = 390
-        col2_x = 570
+        # Column positions - compressed horizontally
+        col1_x = 360
+        col2_x = 530
         detail_y = y_start
         row_spacing = 42  # Reduced spacing
 
@@ -187,46 +187,46 @@ class WeatherDisplay:
             ('aqi', 'Air Quality', f"{current.get('air_quality', {}).get('index', 0)} /10"),
         ]
 
-        # Draw column 1 - with smaller icons
+        # Draw column 1 - tighter spacing between icon and text
         for i, (icon_name, label, value) in enumerate(details_col1):
             y = detail_y + i * row_spacing
             # Load and paste smaller icon (32x32)
             icon = self.load_icon(icon_name, 32)
             img.paste(icon, (col1_x, y), icon if icon.mode == 'RGBA' else None)
-            # Draw label and value
-            draw.text((col1_x + 42, y + 2), label, font=self.font_detail_label, fill=self.TEXT_SECONDARY)
-            draw.text((col1_x + 42, y + 16), value, font=self.font_detail_value, fill=self.WHITE)
+            # Draw label and value - closer to icon
+            draw.text((col1_x + 38, y + 2), label, font=self.font_detail_label, fill=self.TEXT_SECONDARY)
+            draw.text((col1_x + 38, y + 16), value, font=self.font_detail_value, fill=self.WHITE)
 
-        # Draw column 2 - with smaller icons
+        # Draw column 2 - tighter spacing between icon and text
         for i, (icon_name, label, value) in enumerate(details_col2):
             y = detail_y + i * row_spacing
             # Load and paste smaller icon (32x32)
             icon = self.load_icon(icon_name, 32)
             img.paste(icon, (col2_x, y), icon if icon.mode == 'RGBA' else None)
-            # Draw label and value
-            draw.text((col2_x + 42, y + 2), label, font=self.font_detail_label, fill=self.TEXT_SECONDARY)
-            draw.text((col2_x + 42, y + 16), value, font=self.font_detail_value, fill=self.WHITE)
+            # Draw label and value - closer to icon
+            draw.text((col2_x + 38, y + 2), label, font=self.font_detail_label, fill=self.TEXT_SECONDARY)
+            draw.text((col2_x + 38, y + 16), value, font=self.font_detail_value, fill=self.WHITE)
 
     def draw_graph_section(self, img, draw, hourly_data, temp_min, temp_max, y_start=200):
         """Draw temperature graph with time labels"""
         if not hourly_data or len(hourly_data) < 2:
             return
 
-        # Graph dimensions - reduced height
-        graph_x = 50
-        graph_width = 680
+        # Graph dimensions - compressed horizontally
+        graph_x = 45
+        graph_width = 700
         graph_height = 60
         graph_y = y_start + 8
 
         # No border/background - just draw on white canvas
 
         # Y-axis labels (left - temperature)
-        draw.text((20, graph_y), f"{temp_max}°F", font=self.font_axis, fill=self.TEXT_SECONDARY)
-        draw.text((20, graph_y + graph_height - 10), f"{temp_min}°F", font=self.font_axis, fill=self.TEXT_SECONDARY)
+        draw.text((15, graph_y), f"{temp_max}°F", font=self.font_axis, fill=self.TEXT_SECONDARY)
+        draw.text((15, graph_y + graph_height - 10), f"{temp_min}°F", font=self.font_axis, fill=self.TEXT_SECONDARY)
 
         # Y-axis labels (right - rain %)
-        draw.text((self.width - 45, graph_y), "100%", font=self.font_axis, fill=self.TEXT_SECONDARY)
-        draw.text((self.width - 38, graph_y + graph_height - 10), "0%", font=self.font_axis, fill=self.TEXT_SECONDARY)
+        draw.text((self.width - 40, graph_y), "100%", font=self.font_axis, fill=self.TEXT_SECONDARY)
+        draw.text((self.width - 33, graph_y + graph_height - 10), "0%", font=self.font_axis, fill=self.TEXT_SECONDARY)
 
         # Calculate points for temperature line
         temps = [h['temp'] for h in hourly_data]
@@ -292,7 +292,7 @@ class WeatherDisplay:
                 draw.text((int(px - text_width // 2), label_y), time_text,
                          font=self.font_axis, fill=self.TEXT_SECONDARY)
 
-    def draw_forecast(self, img, draw, forecast_data, y_start=350):
+    def draw_forecast(self, img, draw, forecast_data, y_start=360):
         """Draw forecast cards starting with Today (6 days total)"""
         if not forecast_data:
             print("Warning: No forecast data available")
@@ -311,16 +311,16 @@ class WeatherDisplay:
             print(f"First card date: {daily_forecasts[0].get('date', 'Unknown')} ({daily_forecasts[0].get('day_name', 'Unknown')})")
             print(f"Last card date: {daily_forecasts[-1].get('date', 'Unknown')} ({daily_forecasts[-1].get('day_name', 'Unknown')})")
 
-        # Calculate card dimensions - slightly smaller cards
+        # Calculate card dimensions - tighter horizontal spacing
         cards_per_row = len(daily_forecasts)
-        total_spacing = 12 * 2  # Left and right padding
-        gap_spacing = 8 * (cards_per_row - 1)  # Spacing between cards
+        total_spacing = 10 * 2  # Left and right padding (reduced)
+        gap_spacing = 6 * (cards_per_row - 1)  # Spacing between cards (reduced)
         available_width = self.width - total_spacing - gap_spacing
         card_width = available_width // cards_per_row
         card_height = 100  # Slightly smaller height
 
         for i, day in enumerate(daily_forecasts):
-            card_x = 12 + i * (card_width + 8)  # Adjusted spacing
+            card_x = 10 + i * (card_width + 6)  # Tighter spacing
             # Override day name for first card to show "Today"
             day_display = day.copy()
             if i == 0:
@@ -466,7 +466,7 @@ class WeatherDisplay:
             self.draw_current_weather(img, draw, data, y_start=75)
             self.draw_details(img, draw, data, y_start=65)
             self.draw_graph_section(img, draw, data['hourly_data'], data['temp_min'], data['temp_max'], y_start=200)
-            self.draw_forecast(img, draw, data['forecast'], y_start=350)
+            self.draw_forecast(img, draw, data['forecast'], y_start=360)
 
             # Enhance contrast and brightness for e-ink display
             # Increase contrast for better visibility
