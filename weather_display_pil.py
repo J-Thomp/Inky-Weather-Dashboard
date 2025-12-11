@@ -9,6 +9,46 @@ from inky.auto import auto
 from datetime import datetime
 import os
 
+
+def bezier_curve(points, num_segments=50):
+    """Generate smooth bezier curve points from a list of control points using Catmull-Rom splines"""
+    if len(points) < 2:
+        return points
+
+    result = []
+
+    # Catmull-Rom spline interpolation
+    for i in range(len(points) - 1):
+        # Get 4 points for the spline (with boundary handling)
+        p0 = points[max(0, i - 1)]
+        p1 = points[i]
+        p2 = points[i + 1]
+        p3 = points[min(len(points) - 1, i + 2)]
+
+        # Generate points along this segment
+        for t_step in range(num_segments):
+            t = t_step / num_segments
+            t2 = t * t
+            t3 = t2 * t
+
+            # Catmull-Rom basis functions
+            x = 0.5 * ((2 * p1[0]) +
+                      (-p0[0] + p2[0]) * t +
+                      (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2 +
+                      (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3)
+
+            y = 0.5 * ((2 * p1[1]) +
+                      (-p0[1] + p2[1]) * t +
+                      (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 +
+                      (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3)
+
+            result.append((int(x), int(y)))
+
+    # Add the last point
+    result.append(points[-1])
+
+    return result
+
 class WeatherDisplay:
     def __init__(self):
         try:
@@ -128,10 +168,10 @@ class WeatherDisplay:
         draw.text((x, 58), current_date, font=self.font_date, fill=self.TEXT_SECONDARY)
 
         # Timestamp in top right corner, even with location, shifted left more
-        bbox = draw.textbbox((0, 0), last_updated, font=self.font_detail_label)
+        bbox = draw.textbbox((0, 0), last_updated, font=self.font_date)
         text_width = bbox[2] - bbox[0]
-        draw.text((self.width - text_width - 70, location_y), last_updated,
-                 font=self.font_detail_label, fill=self.TEXT_SECONDARY)
+        draw.text((self.width - text_width - 120, location_y), last_updated,
+                 font=self.font_date, fill=self.TEXT_SECONDARY)
 
     def draw_current_weather(self, img, draw, weather_data, y_start=100):
         """Draw current weather section with icon and temperature"""
@@ -244,16 +284,15 @@ class WeatherDisplay:
 
         # Draw gradient fill under the temperature line using alpha blending
         ORANGE = (255, 140, 66)
+        BLUE = (100, 150, 255)
 
-        if len(points) > 1:
+        # Generate smooth curve points using bezier interpolation
+        smooth_temp_points = bezier_curve(points, num_segments=20) if len(points) > 1 else points
+
+        if len(smooth_temp_points) > 1:
             # Create a temporary RGBA image for the gradient
             overlay = Image.new('RGBA', (self.width, self.height), (0, 0, 0, 0))
             overlay_draw = ImageDraw.Draw(overlay)
-
-            # Create polygon for the area under the curve
-            polygon_points = points.copy()
-            polygon_points.append((int(points[-1][0]), int(graph_y + graph_height)))
-            polygon_points.append((int(points[0][0]), int(graph_y + graph_height)))
 
             # Draw multiple layers with decreasing opacity to create gradient
             num_layers = 30
@@ -264,14 +303,14 @@ class WeatherDisplay:
                 # Calculate Y offset for this layer
                 y_offset = int((graph_height * layer) / num_layers)
 
-                # Create polygon points for this layer
+                # Create polygon points for this layer using smooth curve
                 layer_points = []
-                for px, py in points:
+                for px, py in smooth_temp_points:
                     layer_points.append((px, py + y_offset))
 
                 # Add bottom edge
-                layer_points.append((int(points[-1][0]), int(graph_y + graph_height)))
-                layer_points.append((int(points[0][0]), int(graph_y + graph_height)))
+                layer_points.append((int(smooth_temp_points[-1][0]), int(graph_y + graph_height)))
+                layer_points.append((int(smooth_temp_points[0][0]), int(graph_y + graph_height)))
 
                 # Draw this layer
                 overlay_draw.polygon(layer_points, fill=(*ORANGE, alpha))
@@ -279,27 +318,26 @@ class WeatherDisplay:
             # Paste the gradient overlay onto the main image
             img.paste(overlay, (0, 0), overlay)
 
-            # Draw the temperature line on top (smooth continuous line)
-            draw.line(points, fill=ORANGE, width=3, joint='curve')
+            # Draw the smooth temperature line on top
+            for i in range(len(smooth_temp_points) - 1):
+                draw.line([smooth_temp_points[i], smooth_temp_points[i + 1]], fill=ORANGE, width=3)
 
-        # Draw rain chance bars
-        BLUE = (100, 150, 255)
-        bar_width = max(int(step * 0.6), 3)  # 60% of step width, minimum 3px
+        # Calculate points for precipitation line chart
+        rain_points = []
         for i, hour in enumerate(hourly_data):
             rain_pct = hour.get('rain_chance', 0)
-            if rain_pct > 0:
-                px = graph_x + i * step
-                # Bar height proportional to rain percentage
-                bar_height = int((rain_pct / 100) * graph_height)
-                bar_top = graph_y + graph_height - bar_height
-                # Draw semi-transparent blue bar
-                overlay = Image.new('RGBA', (self.width, self.height), (0, 0, 0, 0))
-                overlay_draw = ImageDraw.Draw(overlay)
-                overlay_draw.rectangle(
-                    [int(px - bar_width/2), bar_top, int(px + bar_width/2), graph_y + graph_height],
-                    fill=(*BLUE, 120)
-                )
-                img.paste(overlay, (0, 0), overlay)
+            px = graph_x + i * step
+            # Y position based on rain percentage (0% at bottom, 100% at top)
+            py = graph_y + graph_height - (rain_pct / 100) * graph_height
+            rain_points.append((int(px), int(py)))
+
+        # Generate smooth curve for precipitation line
+        if len(rain_points) > 1:
+            smooth_rain_points = bezier_curve(rain_points, num_segments=20)
+
+            # Draw the smooth precipitation line
+            for i in range(len(smooth_rain_points) - 1):
+                draw.line([smooth_rain_points[i], smooth_rain_points[i + 1]], fill=BLUE, width=2)
 
         # Time labels below graph - smaller font
         label_y = graph_y + graph_height + 10
