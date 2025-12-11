@@ -127,7 +127,7 @@ class WeatherDisplay:
             self.font_detail_value = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 16)
             self.font_forecast_day = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 16)
             self.font_forecast_temp = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Medium.ttf", 13)
-            self.font_axis = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 9)
+            self.font_axis = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 11)
             self.font_footer = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 8)
         except:
             try:
@@ -142,7 +142,7 @@ class WeatherDisplay:
                 self.font_detail_value = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 16)
                 self.font_forecast_day = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 16)
                 self.font_forecast_temp = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 13)
-                self.font_axis = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 9)
+                self.font_axis = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 11)
                 self.font_footer = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 8)
             except Exception as e:
                 print(f"Warning: Could not load fonts: {e}")
@@ -174,11 +174,13 @@ class WeatherDisplay:
             print(f"  Converting night icon to day version: {icon_name}")
 
         # Handle night icons
+        is_moon_icon = False
         if icon_name.endswith('n'):
             # Clear night (01n) or partly cloudy night (02n) - use moon phase icon
             if icon_name in ('01n', '02n'):
                 moon_icon = get_moon_phase()
                 icon_path = f"icons/{moon_icon}.png"
+                is_moon_icon = True
                 print(f"  Using moon phase icon for night: {moon_icon}")
             else:
                 # For other night weather (rain, snow, etc.), use day version
@@ -210,6 +212,16 @@ class WeatherDisplay:
             color_enhancer = ImageEnhance.Color(icon)
             icon = color_enhancer.enhance(1.2)
 
+            # Extra enhancement for moon icons to improve visibility
+            if is_moon_icon:
+                # Boost brightness significantly for moon icons
+                brightness_enhancer = ImageEnhance.Brightness(icon)
+                icon = brightness_enhancer.enhance(1.8)  # 80% brighter
+
+                # Boost contrast for moon icons
+                contrast_enhancer = ImageEnhance.Contrast(icon)
+                icon = contrast_enhancer.enhance(1.5)  # 50% more contrast
+
             return icon
         except Exception as e:
             print(f"Error loading icon {icon_path}: {e}")
@@ -234,7 +246,7 @@ class WeatherDisplay:
         # Timestamp in top right corner, even with location
         bbox = draw.textbbox((0, 0), last_updated, font=self.font_date)
         text_width = bbox[2] - bbox[0]
-        draw.text((self.width - text_width - 90, location_y), last_updated,
+        draw.text((self.width - text_width - 70, location_y), last_updated,
                  font=self.font_date, fill=self.TEXT_SECONDARY)
 
     def draw_current_weather(self, img, draw, weather_data, y_start=100):
@@ -404,16 +416,15 @@ class WeatherDisplay:
             for i in range(len(smooth_rain_points) - 1):
                 draw.line([smooth_rain_points[i], smooth_rain_points[i + 1]], fill=BLUE, width=2)
 
-        # Time labels below graph - smaller font
+        # Time labels below graph - show all time points (every 3 hours from API)
         label_y = graph_y + graph_height + 10
         for i, hour in enumerate(hourly_data):
-            if i % 2 == 0:  # Every other label
-                px = graph_x + i * step
-                time_text = hour['time']
-                bbox = draw.textbbox((0, 0), time_text, font=self.font_axis)
-                text_width = bbox[2] - bbox[0]
-                draw.text((int(px - text_width // 2), label_y), time_text,
-                         font=self.font_axis, fill=self.TEXT_SECONDARY)
+            px = graph_x + i * step
+            time_text = hour['time']
+            bbox = draw.textbbox((0, 0), time_text, font=self.font_axis)
+            text_width = bbox[2] - bbox[0]
+            draw.text((int(px - text_width // 2), label_y), time_text,
+                     font=self.font_axis, fill=self.TEXT_SECONDARY)
 
     def draw_forecast(self, img, draw, forecast_data, y_start=370):
         """Draw forecast cards starting with Today (6 days total)"""
