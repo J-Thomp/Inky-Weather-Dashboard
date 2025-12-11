@@ -10,6 +10,50 @@ from datetime import datetime
 import os
 
 
+def get_moon_phase():
+    """Calculate current moon phase and return the appropriate icon name.
+
+    Moon cycle is approximately 29.53 days. We calculate days since a known
+    new moon (January 6, 2000) and determine the current phase.
+
+    Returns:
+        str: Icon filename for the current moon phase
+    """
+    from datetime import date
+
+    # Known new moon date: January 6, 2000
+    known_new_moon = date(2000, 1, 6)
+    today = date.today()
+
+    # Days since known new moon
+    days_since = (today - known_new_moon).days
+
+    # Moon cycle length
+    lunar_cycle = 29.53
+
+    # Current position in the cycle (0 to 29.53)
+    cycle_position = days_since % lunar_cycle
+
+    # Determine phase based on position in cycle
+    # Each phase is roughly 3.69 days (29.53 / 8)
+    if cycle_position < 1.85:
+        return "newmoon"
+    elif cycle_position < 7.38:
+        return "waxingcrescent"
+    elif cycle_position < 11.07:
+        return "firstquarter"
+    elif cycle_position < 14.76:
+        return "waxinggibbous"
+    elif cycle_position < 16.61:
+        return "fullmoon"
+    elif cycle_position < 22.14:
+        return "waninggibbous"
+    elif cycle_position < 25.83:
+        return "lastquarter"
+    else:
+        return "waningcrescent"
+
+
 def bezier_curve(points, num_segments=50):
     """Generate smooth bezier curve points from a list of control points using Catmull-Rom splines"""
     if len(points) < 2:
@@ -116,14 +160,34 @@ class WeatherDisplay:
                 self.font_axis = ImageFont.load_default()
                 self.font_footer = ImageFont.load_default()
 
-    def load_icon(self, icon_name, size):
-        """Load and resize an icon with high quality"""
-        # Convert night icons to day icons (e.g., 04n -> 04d)
-        if icon_name.endswith('n'):
+    def load_icon(self, icon_name, size, force_day=False):
+        """Load and resize an icon with high quality
+
+        Args:
+            icon_name: The icon code (e.g., '01d', '01n', '02d')
+            size: The size to resize the icon to
+            force_day: If True, always convert night icons to day versions (for forecasts)
+        """
+        # For forecast cards, always use day icons
+        if force_day and icon_name.endswith('n'):
             icon_name = icon_name[:-1] + 'd'
             print(f"  Converting night icon to day version: {icon_name}")
 
-        icon_path = f"icons/{icon_name}.png"
+        # Handle night icons
+        if icon_name.endswith('n'):
+            # Clear night (01n) or partly cloudy night (02n) - use moon phase icon
+            if icon_name in ('01n', '02n'):
+                moon_icon = get_moon_phase()
+                icon_path = f"icons/{moon_icon}.png"
+                print(f"  Using moon phase icon for night: {moon_icon}")
+            else:
+                # For other night weather (rain, snow, etc.), use day version
+                day_version = icon_name[:-1] + 'd'
+                icon_path = f"icons/{day_version}.png"
+                print(f"  Using day version for night weather: {day_version}")
+        else:
+            icon_path = f"icons/{icon_name}.png"
+
         if not os.path.exists(icon_path):
             print(f"Warning: Icon {icon_path} not found")
             # Return a blank image
@@ -167,10 +231,10 @@ class WeatherDisplay:
         x = (self.width - text_width) // 2
         draw.text((x, 58), current_date, font=self.font_date, fill=self.TEXT_SECONDARY)
 
-        # Timestamp in top right corner, even with location, shifted left more
+        # Timestamp in top right corner, even with location
         bbox = draw.textbbox((0, 0), last_updated, font=self.font_date)
         text_width = bbox[2] - bbox[0]
-        draw.text((self.width - text_width - 120, location_y), last_updated,
+        draw.text((self.width - text_width - 90, location_y), last_updated,
                  font=self.font_date, fill=self.TEXT_SECONDARY)
 
     def draw_current_weather(self, img, draw, weather_data, y_start=100):
@@ -178,6 +242,7 @@ class WeatherDisplay:
         current = weather_data['current']
 
         # Left side - icon moved up and left slightly
+        print(f"Loading MAIN weather icon: {current['icon']} (force_day=False)")
         icon = self.load_icon(current['icon'], 152)
         img.paste(icon, (60, y_start - 18), icon if icon.mode == 'RGBA' else None)
 
@@ -425,7 +490,7 @@ class WeatherDisplay:
 
         print(f"  Loading icon: {icon_code} at size {icon_size}")
 
-        icon = self.load_icon(icon_code, icon_size)
+        icon = self.load_icon(icon_code, icon_size, force_day=True)
         icon_x = int(x + (width - icon_size) // 2)
         icon_y = int(y + 25)
 
