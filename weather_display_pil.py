@@ -247,17 +247,13 @@ class WeatherDisplay:
 
             # Extra enhancement for small UI icons
             if is_ui_icon:
-                # Reduce brightness to deepen colors significantly
-                brightness_enhancer = ImageEnhance.Brightness(icon)
-                icon = brightness_enhancer.enhance(0.75)  # 25% darker
+                # High contrast to make colors pop while preserving white elements
+                contrast_enhancer2 = ImageEnhance.Contrast(icon)
+                icon = contrast_enhancer2.enhance(2.0)  # Double contrast
 
                 # Extra saturation boost for UI icons
                 color_enhancer2 = ImageEnhance.Color(icon)
-                icon = color_enhancer2.enhance(1.6)  # Additional 60% saturation
-
-                # Extra contrast for UI icons
-                contrast_enhancer2 = ImageEnhance.Contrast(icon)
-                icon = contrast_enhancer2.enhance(1.4)  # Additional 40% contrast
+                icon = color_enhancer2.enhance(2.0)  # Double saturation
 
             return icon
         except Exception as e:
