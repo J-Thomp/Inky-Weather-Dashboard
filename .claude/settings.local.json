@@ -17,7 +17,8 @@
       "Bash(python verify_forecast_data.py:*)",
       "Bash(chmod:*)",
       "Bash(git pull:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []

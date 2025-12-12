@@ -10,48 +10,80 @@ from datetime import datetime
 import os
 
 
-def get_moon_phase():
-    """Calculate current moon phase and return the appropriate icon name.
+def get_weather_icon(icon_code, wind_speed=0):
+    """Map OpenWeatherMap icon code to local icon filename.
 
-    Moon cycle is approximately 29.53 days. We calculate days since a known
-    new moon (January 6, 2000) and determine the current phase.
+    Args:
+        icon_code: OpenWeatherMap icon code (e.g., '01d', '01n', '10d')
+        wind_speed: Current wind speed in mph for windy icon logic
 
     Returns:
-        str: Icon filename for the current moon phase
+        str: Local icon filename
     """
-    from datetime import date
+    # Very high wind (>= 20mph) overrides all weather icons
+    if wind_speed >= 20:
+        return "windy"
 
-    # Known new moon date: January 6, 2000
-    known_new_moon = date(2000, 1, 6)
-    today = date.today()
+    is_night = icon_code.endswith('n')
+    base_code = icon_code[:2]
 
-    # Days since known new moon
-    days_since = (today - known_new_moon).days
+    # Icon mapping based on OpenWeatherMap codes
+    # 01 = clear sky
+    if base_code == '01':
+        if is_night:
+            return "clear_night"
+        else:
+            # Clear day with wind >= 10mph uses windy variant
+            if wind_speed >= 10:
+                return "clear_windy"
+            return "clear_day"
 
-    # Moon cycle length
-    lunar_cycle = 29.53
+    # 02 = few clouds (partly cloudy)
+    elif base_code == '02':
+        if is_night:
+            return "partly_cloudy_night"
+        else:
+            return "partly_cloudy_day"
 
-    # Current position in the cycle (0 to 29.53)
-    cycle_position = days_since % lunar_cycle
+    # 03 = scattered clouds, 04 = broken clouds (cloudy)
+    elif base_code in ('03', '04'):
+        # Cloudy with wind >= 10mph during day uses windy variant
+        if not is_night and wind_speed >= 10:
+            return "cloudy_windy"
+        return "cloudy"
 
-    # Determine phase based on position in cycle
-    # Each phase is roughly 3.69 days (29.53 / 8)
-    if cycle_position < 1.85:
-        return "newmoon"
-    elif cycle_position < 7.38:
-        return "waxingcrescent"
-    elif cycle_position < 11.07:
-        return "firstquarter"
-    elif cycle_position < 14.76:
-        return "waxinggibbous"
-    elif cycle_position < 16.61:
-        return "fullmoon"
-    elif cycle_position < 22.14:
-        return "waninggibbous"
-    elif cycle_position < 25.83:
-        return "lastquarter"
+    # 09 = shower rain / drizzle
+    elif base_code == '09':
+        if is_night:
+            return "drizzle_night"
+        else:
+            return "drizzle_day"
+
+    # 10 = rain
+    elif base_code == '10':
+        if is_night:
+            return "rain_night"
+        else:
+            return "rain_day"
+
+    # 11 = thunderstorm
+    elif base_code == '11':
+        return "thunderstorm"
+
+    # 13 = snow
+    elif base_code == '13':
+        if is_night:
+            return "snow_night"
+        else:
+            return "snow_day"
+
+    # 50 = mist/fog
+    elif base_code == '50':
+        return "mist"
+
+    # Default fallback
     else:
-        return "waningcrescent"
+        return "cloudy"
 
 
 def bezier_curve(points, num_segments=50):
@@ -160,35 +192,31 @@ class WeatherDisplay:
                 self.font_axis = ImageFont.load_default()
                 self.font_footer = ImageFont.load_default()
 
-    def load_icon(self, icon_name, size, force_day=False):
+    def load_icon(self, icon_name, size, wind_speed=0, force_day=False):
         """Load and resize an icon with high quality
 
         Args:
-            icon_name: The icon code (e.g., '01d', '01n', '02d')
+            icon_name: The icon code (e.g., '01d', '01n') or UI icon name (e.g., 'sunrise')
             size: The size to resize the icon to
+            wind_speed: Current wind speed for weather icon wind variants
             force_day: If True, always convert night icons to day versions (for forecasts)
         """
-        # For forecast cards, always use day icons
-        if force_day and icon_name.endswith('n'):
-            icon_name = icon_name[:-1] + 'd'
-            print(f"  Converting night icon to day version: {icon_name}")
+        # UI icons are loaded directly by name
+        ui_icons = ['sunrise', 'sunset', 'wind', 'humidity', 'visibility', 'aqi']
 
-        # Handle night icons
-        is_moon_icon = False
-        if icon_name.endswith('n'):
-            # Clear night (01n) or partly cloudy night (02n) - use moon phase icon
-            if icon_name in ('01n', '02n'):
-                moon_icon = get_moon_phase()
-                icon_path = f"icons/{moon_icon}.png"
-                is_moon_icon = True
-                print(f"  Using moon phase icon for night: {moon_icon}")
-            else:
-                # For other night weather (rain, snow, etc.), use day version
-                day_version = icon_name[:-1] + 'd'
-                icon_path = f"icons/{day_version}.png"
-                print(f"  Using day version for night weather: {day_version}")
-        else:
+        if icon_name in ui_icons:
             icon_path = f"icons/{icon_name}.png"
+            print(f"  Loading UI icon: {icon_name}")
+        else:
+            # Weather icon - use mapping function
+            if force_day and icon_name.endswith('n'):
+                # For forecast cards, convert to day version
+                icon_name = icon_name[:-1] + 'd'
+                print(f"  Converting to day icon for forecast: {icon_name}")
+
+            mapped_icon = get_weather_icon(icon_name, wind_speed)
+            icon_path = f"icons/{mapped_icon}.png"
+            print(f"  Loading weather icon: {icon_name} -> {mapped_icon}")
 
         if not os.path.exists(icon_path):
             print(f"Warning: Icon {icon_path} not found")
@@ -211,16 +239,6 @@ class WeatherDisplay:
             # Boost color saturation slightly for better visibility
             color_enhancer = ImageEnhance.Color(icon)
             icon = color_enhancer.enhance(1.2)
-
-            # Extra enhancement for moon icons to improve visibility
-            if is_moon_icon:
-                # Boost brightness significantly for moon icons
-                brightness_enhancer = ImageEnhance.Brightness(icon)
-                icon = brightness_enhancer.enhance(1.8)  # 80% brighter
-
-                # Boost contrast for moon icons
-                contrast_enhancer = ImageEnhance.Contrast(icon)
-                icon = contrast_enhancer.enhance(1.5)  # 50% more contrast
 
             return icon
         except Exception as e:
@@ -246,7 +264,7 @@ class WeatherDisplay:
         # Timestamp in top right corner, even with location
         bbox = draw.textbbox((0, 0), last_updated, font=self.font_date)
         text_width = bbox[2] - bbox[0]
-        draw.text((self.width - text_width - 70, location_y), last_updated,
+        draw.text((self.width - text_width - 80, location_y), last_updated,
                  font=self.font_date, fill=self.TEXT_SECONDARY)
 
     def draw_current_weather(self, img, draw, weather_data, y_start=100):
@@ -254,8 +272,9 @@ class WeatherDisplay:
         current = weather_data['current']
 
         # Left side - icon moved up and left slightly
-        print(f"Loading MAIN weather icon: {current['icon']} (force_day=False)")
-        icon = self.load_icon(current['icon'], 152)
+        wind_speed = current.get('wind_speed', 0)
+        print(f"Loading MAIN weather icon: {current['icon']} (wind_speed={wind_speed})")
+        icon = self.load_icon(current['icon'], 152, wind_speed=wind_speed)
         img.paste(icon, (60, y_start - 18), icon if icon.mode == 'RGBA' else None)
 
         # Temperature - moved up more
@@ -294,7 +313,7 @@ class WeatherDisplay:
         # Column 1 details
         details_col1 = [
             ('sunrise', 'Sunrise', current['sunrise'].strftime('%I:%M %p').lstrip('0')),
-            ('wind', 'Wind', f"{current['wind_speed']} mph"),
+            ('wind', 'Wind', f"{current['wind_speed']:.1f} mph"),
             ('visibility', 'Visibility', f"{current.get('visibility', 10):.1f} mi"),
         ]
 
@@ -501,7 +520,7 @@ class WeatherDisplay:
 
         print(f"  Loading icon: {icon_code} at size {icon_size}")
 
-        icon = self.load_icon(icon_code, icon_size, force_day=True)
+        icon = self.load_icon(icon_code, icon_size, wind_speed=0, force_day=True)
         icon_x = int(x + (width - icon_size) // 2)
         icon_y = int(y + 25)
 
