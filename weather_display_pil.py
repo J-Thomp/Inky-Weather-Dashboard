@@ -202,7 +202,7 @@ class WeatherDisplay:
             force_day: If True, always convert night icons to day versions (for forecasts)
         """
         # UI icons are loaded directly by name
-        ui_icons = ['sunrise', 'sunset', 'wind', 'humidity', 'visibility', 'aqi']
+        ui_icons = ['sunrise', 'sunset', 'wind', 'humidity', 'eye', 'aqi']
 
         is_ui_icon = icon_name in ui_icons
         if is_ui_icon:
@@ -259,16 +259,16 @@ class WeatherDisplay:
                 color_enhancer2 = ImageEnhance.Color(icon)
                 icon = color_enhancer2.enhance(2.2)  # More than double saturation
 
-            # Shift yellow colors toward orange for all icons
-            icon = self.shift_yellow_to_orange(icon)
+            # Boost red colors for more pop
+            icon = self.boost_red_colors(icon)
 
             return icon
         except Exception as e:
             print(f"Error loading icon {icon_path}: {e}")
             return Image.new('RGBA', (size, size), (255, 255, 255, 0))
 
-    def shift_yellow_to_orange(self, icon):
-        """Shift yellow colors toward orange by reducing green channel"""
+    def boost_red_colors(self, icon):
+        """Boost red colors for more vibrant reds and oranges"""
         if icon.mode != 'RGBA':
             icon = icon.convert('RGBA')
 
@@ -279,11 +279,13 @@ class WeatherDisplay:
             for x in range(width):
                 r, g, b, a = pixels[x, y]
 
-                # Detect yellow-ish colors (high red, high green, low blue)
-                if r > 150 and g > 150 and b < 150:
-                    # Reduce green to shift toward orange
-                    new_g = int(g * 0.6)  # Reduce green by 40%
-                    pixels[x, y] = (r, new_g, b, a)
+                # Boost red channel for reddish/orange colors
+                if r > 100 and r > g:
+                    # Increase red, cap at 255
+                    new_r = min(255, int(r * 1.2))  # Boost red by 20%
+                    # Slightly reduce green to make reds pop more
+                    new_g = int(g * 0.9)
+                    pixels[x, y] = (new_r, new_g, b, a)
 
         return icon
 
@@ -356,7 +358,7 @@ class WeatherDisplay:
         details_col1 = [
             ('sunrise', 'Sunrise', current['sunrise'].strftime('%I:%M %p').lstrip('0')),
             ('wind', 'Wind', f"{current['wind_speed']:.1f} mph"),
-            ('visibility', 'Visibility', f"{current.get('visibility', 10):.1f} mi"),
+            ('eye', 'Visibility', f"{current.get('visibility', 10):.1f} mi"),
         ]
 
         # Column 2 details
