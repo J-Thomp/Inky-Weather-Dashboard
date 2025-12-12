@@ -342,22 +342,22 @@ class WeatherDisplay:
         # Draw column 1 - tighter spacing between icon and text
         for i, (icon_name, label, value) in enumerate(details_col1):
             y = detail_y + i * row_spacing
-            # Load and paste smaller icon (32x32)
-            icon = self.load_icon(icon_name, 32)
+            # Load and paste icon (38x38)
+            icon = self.load_icon(icon_name, 38)
             img.paste(icon, (col1_x, y), icon if icon.mode == 'RGBA' else None)
-            # Draw label and value - closer to icon
-            draw.text((col1_x + 38, y + 2), label, font=self.font_detail_label, fill=self.TEXT_SECONDARY)
-            draw.text((col1_x + 38, y + 16), value, font=self.font_detail_value, fill=self.WHITE)
+            # Draw label and value - adjusted for larger icon
+            draw.text((col1_x + 44, y + 4), label, font=self.font_detail_label, fill=self.TEXT_SECONDARY)
+            draw.text((col1_x + 44, y + 20), value, font=self.font_detail_value, fill=self.WHITE)
 
         # Draw column 2 - tighter spacing between icon and text
         for i, (icon_name, label, value) in enumerate(details_col2):
             y = detail_y + i * row_spacing
-            # Load and paste smaller icon (32x32)
-            icon = self.load_icon(icon_name, 32)
+            # Load and paste icon (38x38)
+            icon = self.load_icon(icon_name, 38)
             img.paste(icon, (col2_x, y), icon if icon.mode == 'RGBA' else None)
-            # Draw label and value - closer to icon
-            draw.text((col2_x + 38, y + 2), label, font=self.font_detail_label, fill=self.TEXT_SECONDARY)
-            draw.text((col2_x + 38, y + 16), value, font=self.font_detail_value, fill=self.WHITE)
+            # Draw label and value - adjusted for larger icon
+            draw.text((col2_x + 44, y + 4), label, font=self.font_detail_label, fill=self.TEXT_SECONDARY)
+            draw.text((col2_x + 44, y + 20), value, font=self.font_detail_value, fill=self.WHITE)
 
     def draw_graph_section(self, img, draw, hourly_data, temp_min, temp_max, y_start=245):
         """Draw temperature graph with time labels"""
@@ -529,8 +529,8 @@ class WeatherDisplay:
         draw.text((x + (width - text_width) // 2, y + 6), day_name,
                  font=self.font_forecast_day, fill=self.WHITE)
 
-        # Weather icon (centered, smaller 45x45)
-        icon_size = 45
+        # Weather icon (centered, 52x52)
+        icon_size = 52
         icon_code = day_data.get('icon', '01d')
 
         print(f"  Loading icon: {icon_code} at size {icon_size}")
@@ -633,8 +633,8 @@ class WeatherDisplay:
             self.draw_header(draw, data['city'], data['country'], data['current_date'], data['last_updated'])
             self.draw_current_weather(img, draw, data, y_start=100)
             self.draw_details(img, draw, data, y_start=90)
-            self.draw_graph_section(img, draw, data['hourly_data'], data['temp_min'], data['temp_max'], y_start=245)
-            self.draw_forecast(img, draw, data['forecast'], y_start=370)
+            self.draw_graph_section(img, draw, data['hourly_data'], data['temp_min'], data['temp_max'], y_start=255)
+            self.draw_forecast(img, draw, data['forecast'], y_start=380)
 
             # Enhance contrast for e-ink display
             # Increase contrast for better visibility
