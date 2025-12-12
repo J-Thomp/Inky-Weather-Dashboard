@@ -259,10 +259,43 @@ class WeatherDisplay:
                 color_enhancer2 = ImageEnhance.Color(icon)
                 icon = color_enhancer2.enhance(2.2)  # More than double saturation
 
+            # Make sunrise and sunset icons completely yellow
+            if icon_name in ('sunrise', 'sunset'):
+                icon = self.make_icon_yellow(icon)
+
             return icon
         except Exception as e:
             print(f"Error loading icon {icon_path}: {e}")
             return Image.new('RGBA', (size, size), (255, 255, 255, 0))
+
+    def make_icon_yellow(self, icon):
+        """Convert icon colors to yellow while preserving transparency"""
+        if icon.mode != 'RGBA':
+            icon = icon.convert('RGBA')
+
+        pixels = icon.load()
+        width, height = icon.size
+
+        # Yellow color (RGB: 255, 220, 0)
+        yellow = (255, 220, 0)
+
+        for y in range(height):
+            for x in range(width):
+                r, g, b, a = pixels[x, y]
+
+                # Only modify non-transparent pixels
+                if a > 0:
+                    # Calculate brightness of original pixel
+                    brightness = (r + g + b) / 3 / 255
+
+                    # Apply yellow with original brightness
+                    new_r = int(yellow[0] * brightness)
+                    new_g = int(yellow[1] * brightness)
+                    new_b = int(yellow[2] * brightness)
+
+                    pixels[x, y] = (new_r, new_g, new_b, a)
+
+        return icon
 
     def draw_header(self, draw, city, country, current_date, last_updated):
         """Draw centered header with location and date, timestamp in top right"""
@@ -533,8 +566,8 @@ class WeatherDisplay:
         draw.text((x + (width - text_width) // 2, y + 6), day_name,
                  font=self.font_forecast_day, fill=self.WHITE)
 
-        # Weather icon (centered, 52x52)
-        icon_size = 52
+        # Weather icon (centered, 46x46)
+        icon_size = 46
         icon_code = day_data.get('icon', '01d')
 
         print(f"  Loading icon: {icon_code} at size {icon_size}")
