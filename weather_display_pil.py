@@ -202,7 +202,7 @@ class WeatherDisplay:
             force_day: If True, always convert night icons to day versions (for forecasts)
         """
         # UI icons are loaded directly by name
-        ui_icons = ['sunrise', 'sunset', 'wind', 'humidity', 'eye', 'aqi']
+        ui_icons = ['sunrise', 'sunset', 'wind', 'humidity', 'visibility', 'aqi']
 
         is_ui_icon = icon_name in ui_icons
         if is_ui_icon:
@@ -259,35 +259,10 @@ class WeatherDisplay:
                 color_enhancer2 = ImageEnhance.Color(icon)
                 icon = color_enhancer2.enhance(2.2)  # More than double saturation
 
-            # Boost red colors for more pop
-            icon = self.boost_red_colors(icon)
-
             return icon
         except Exception as e:
             print(f"Error loading icon {icon_path}: {e}")
             return Image.new('RGBA', (size, size), (255, 255, 255, 0))
-
-    def boost_red_colors(self, icon):
-        """Boost red colors for more vibrant reds and oranges"""
-        if icon.mode != 'RGBA':
-            icon = icon.convert('RGBA')
-
-        pixels = icon.load()
-        width, height = icon.size
-
-        for y in range(height):
-            for x in range(width):
-                r, g, b, a = pixels[x, y]
-
-                # Boost red channel for reddish/orange colors
-                if r > 100 and r > g:
-                    # Increase red, cap at 255
-                    new_r = min(255, int(r * 1.2))  # Boost red by 20%
-                    # Slightly reduce green to make reds pop more
-                    new_g = int(g * 0.9)
-                    pixels[x, y] = (new_r, new_g, b, a)
-
-        return icon
 
     def draw_header(self, draw, city, country, current_date, last_updated):
         """Draw centered header with location and date, timestamp in top right"""
@@ -358,7 +333,7 @@ class WeatherDisplay:
         details_col1 = [
             ('sunrise', 'Sunrise', current['sunrise'].strftime('%I:%M %p').lstrip('0')),
             ('wind', 'Wind', f"{current['wind_speed']:.1f} mph"),
-            ('eye', 'Visibility', f"{current.get('visibility', 10):.1f} mi"),
+            ('visibility', 'Visibility', f"{current.get('visibility', 10):.1f} mi"),
         ]
 
         # Column 2 details
