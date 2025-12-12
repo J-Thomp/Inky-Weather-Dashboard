@@ -204,7 +204,8 @@ class WeatherDisplay:
         # UI icons are loaded directly by name
         ui_icons = ['sunrise', 'sunset', 'wind', 'humidity', 'visibility', 'aqi']
 
-        if icon_name in ui_icons:
+        is_ui_icon = icon_name in ui_icons
+        if is_ui_icon:
             icon_path = f"icons/{icon_name}.png"
             print(f"  Loading UI icon: {icon_name}")
         else:
@@ -238,11 +239,21 @@ class WeatherDisplay:
 
             # Boost color saturation for vibrant icons
             color_enhancer = ImageEnhance.Color(icon)
-            icon = color_enhancer.enhance(1.4)  # 40% more saturated
+            icon = color_enhancer.enhance(1.8)  # 80% more saturated
 
             # Boost contrast for icons to make them pop
             contrast_enhancer = ImageEnhance.Contrast(icon)
-            icon = contrast_enhancer.enhance(1.3)  # 30% more contrast
+            icon = contrast_enhancer.enhance(1.5)  # 50% more contrast
+
+            # Extra enhancement for small UI icons
+            if is_ui_icon:
+                # Reduce brightness slightly to deepen colors
+                brightness_enhancer = ImageEnhance.Brightness(icon)
+                icon = brightness_enhancer.enhance(0.9)  # 10% darker
+
+                # Extra saturation boost for UI icons
+                color_enhancer2 = ImageEnhance.Color(icon)
+                icon = color_enhancer2.enhance(1.3)  # Additional 30% saturation
 
             return icon
         except Exception as e:
