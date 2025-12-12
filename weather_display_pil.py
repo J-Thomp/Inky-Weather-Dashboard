@@ -247,18 +247,45 @@ class WeatherDisplay:
 
             # Extra enhancement for small UI icons
             if is_ui_icon:
-                # High contrast to make colors pop while preserving white elements
+                # Reduce brightness to deepen colors
+                brightness_enhancer = ImageEnhance.Brightness(icon)
+                icon = brightness_enhancer.enhance(0.85)  # 15% darker
+
+                # High contrast to make colors pop
                 contrast_enhancer2 = ImageEnhance.Contrast(icon)
                 icon = contrast_enhancer2.enhance(2.0)  # Double contrast
 
                 # Extra saturation boost for UI icons
                 color_enhancer2 = ImageEnhance.Color(icon)
-                icon = color_enhancer2.enhance(2.0)  # Double saturation
+                icon = color_enhancer2.enhance(2.2)  # More than double saturation
+
+            # Shift yellow colors toward orange for all icons
+            icon = self.shift_yellow_to_orange(icon)
 
             return icon
         except Exception as e:
             print(f"Error loading icon {icon_path}: {e}")
             return Image.new('RGBA', (size, size), (255, 255, 255, 0))
+
+    def shift_yellow_to_orange(self, icon):
+        """Shift yellow colors toward orange by reducing green channel"""
+        if icon.mode != 'RGBA':
+            icon = icon.convert('RGBA')
+
+        pixels = icon.load()
+        width, height = icon.size
+
+        for y in range(height):
+            for x in range(width):
+                r, g, b, a = pixels[x, y]
+
+                # Detect yellow-ish colors (high red, high green, low blue)
+                if r > 150 and g > 150 and b < 150:
+                    # Reduce green to shift toward orange
+                    new_g = int(g * 0.6)  # Reduce green by 40%
+                    pixels[x, y] = (r, new_g, b, a)
+
+        return icon
 
     def draw_header(self, draw, city, country, current_date, last_updated):
         """Draw centered header with location and date, timestamp in top right"""
@@ -633,8 +660,8 @@ class WeatherDisplay:
             self.draw_header(draw, data['city'], data['country'], data['current_date'], data['last_updated'])
             self.draw_current_weather(img, draw, data, y_start=100)
             self.draw_details(img, draw, data, y_start=90)
-            self.draw_graph_section(img, draw, data['hourly_data'], data['temp_min'], data['temp_max'], y_start=255)
-            self.draw_forecast(img, draw, data['forecast'], y_start=380)
+            self.draw_graph_section(img, draw, data['hourly_data'], data['temp_min'], data['temp_max'], y_start=245)
+            self.draw_forecast(img, draw, data['forecast'], y_start=370)
 
             # Enhance contrast for e-ink display
             # Increase contrast for better visibility
