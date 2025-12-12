@@ -141,8 +141,8 @@ class WeatherDisplay:
 
         # Colors - Matte dark theme (reduces glare)
         self.WHITE = (255, 255, 255)  # Text color
-        self.BLACK = (18, 20, 25)        # Slightly lighter black (less glare)
-        self.DARK_BLUE = (28, 35, 50)  # Muted dark blue for gradient
+        self.BLACK = (5, 5, 10)          # True dark black for contrast
+        self.DARK_BLUE = (15, 20, 35)    # Darker blue for gradient
         self.BORDER = (100, 100, 120)  # Lighter border for dark mode
         self.TEXT_SECONDARY = (200, 200, 220)  # Slightly dimmed text
 
@@ -236,9 +236,13 @@ class WeatherDisplay:
             enhancer = ImageEnhance.Sharpness(icon)
             icon = enhancer.enhance(1.5)  # Increase sharpness by 50%
 
-            # Boost color saturation slightly for better visibility
+            # Boost color saturation for vibrant icons
             color_enhancer = ImageEnhance.Color(icon)
-            icon = color_enhancer.enhance(1.2)
+            icon = color_enhancer.enhance(1.4)  # 40% more saturated
+
+            # Boost contrast for icons to make them pop
+            contrast_enhancer = ImageEnhance.Contrast(icon)
+            icon = contrast_enhancer.enhance(1.3)  # 30% more contrast
 
             return icon
         except Exception as e:
@@ -621,14 +625,14 @@ class WeatherDisplay:
             self.draw_graph_section(img, draw, data['hourly_data'], data['temp_min'], data['temp_max'], y_start=245)
             self.draw_forecast(img, draw, data['forecast'], y_start=370)
 
-            # Enhance contrast and brightness for e-ink display
+            # Enhance contrast for e-ink display
             # Increase contrast for better visibility
             contrast_enhancer = ImageEnhance.Contrast(img)
-            img = contrast_enhancer.enhance(1.3)  # 30% more contrast
+            img = contrast_enhancer.enhance(1.4)  # 40% more contrast
 
-            # Slightly increase brightness
-            brightness_enhancer = ImageEnhance.Brightness(img)
-            img = brightness_enhancer.enhance(1.1)  # 10% brighter
+            # Boost color saturation for more vivid icons
+            color_enhancer = ImageEnhance.Color(img)
+            img = color_enhancer.enhance(1.3)  # 30% more saturated
 
             # Save for debugging
             img.save('weather_display.png')

@@ -25,6 +25,7 @@ weather_rendered.html
 *.jpg
 *.png
 !inspiration.png
+!icons/*.png
 
 # IDE
 .vscode/
