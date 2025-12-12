@@ -141,8 +141,8 @@ class WeatherDisplay:
 
         # Colors - Matte dark theme (reduces glare)
         self.WHITE = (255, 255, 255)  # Text color
-        self.BLACK = (5, 5, 10)          # True dark black for contrast
-        self.DARK_BLUE = (15, 20, 35)    # Darker blue for gradient
+        self.BLACK = (0, 0, 0)           # Pure black
+        self.DARK_BLUE = (5, 8, 15)      # Very dark blue, almost black
         self.BORDER = (100, 100, 120)  # Lighter border for dark mode
         self.TEXT_SECONDARY = (200, 200, 220)  # Slightly dimmed text
 
