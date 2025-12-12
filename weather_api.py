@@ -176,19 +176,25 @@ class WeatherAPI:
             today = datetime.now().date()
             first_forecast_date = forecast['daily'][0]['date']
 
+            today_data = {
+                'date': today,
+                'day_name': today.strftime('%a'),
+                'min_temp': current['temp_min'],
+                'max_temp': current['temp_max'],
+                'description': current['description'],
+                'icon': current['icon'],
+                'humidity': current['humidity'],
+                'wind_speed': current['wind_speed']
+            }
+
             # If first forecast is today, replace it with current weather data
             if first_forecast_date == today:
-                forecast['daily'][0] = {
-                    'date': today,
-                    'day_name': today.strftime('%a'),
-                    'min_temp': current['temp_min'],
-                    'max_temp': current['temp_max'],
-                    'description': current['description'],
-                    'icon': current['icon'],
-                    'humidity': current['humidity'],
-                    'wind_speed': current['wind_speed']
-                }
+                forecast['daily'][0] = today_data
                 print(f"Updated today's forecast with current weather data: {current['temp_min']}/{current['temp_max']}°F")
+            else:
+                # Today is missing from forecast (late night), insert it at the beginning
+                forecast['daily'].insert(0, today_data)
+                print(f"Inserted today's forecast from current weather: {current['temp_min']}/{current['temp_max']}°F")
 
         return {
             'current': current,
