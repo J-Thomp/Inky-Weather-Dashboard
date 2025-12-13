@@ -11,7 +11,7 @@ COUNTRY_CODE = os.getenv('COUNTRY_CODE', 'UK')
 UNITS = os.getenv('UNITS', 'metric')  # metric, imperial, or kelvin
 
 # Display configuration
-UPDATE_INTERVAL_MINUTES = 30
+UPDATE_INTERVAL_MINUTES = 20
 DISPLAY_WIDTH = 800
 DISPLAY_HEIGHT = 480
 
