@@ -483,7 +483,35 @@ class WeatherDisplay:
         if len(rain_points) > 1:
             smooth_rain_points = bezier_curve(rain_points, num_segments=20)
 
-            # Draw the smooth precipitation line
+            # Create a temporary RGBA image for the blue gradient under precipitation line
+            rain_overlay = Image.new('RGBA', (self.width, self.height), (0, 0, 0, 0))
+            rain_overlay_draw = ImageDraw.Draw(rain_overlay)
+
+            # Draw multiple layers with decreasing opacity to create gradient
+            num_layers = 30
+            for layer in range(num_layers):
+                # Calculate alpha (more transparent as we go down)
+                alpha = int(80 * (1 - layer / num_layers))
+
+                # Calculate Y offset for this layer
+                y_offset = int((graph_height * layer) / num_layers)
+
+                # Create polygon points for this layer using smooth curve
+                layer_points = []
+                for px, py in smooth_rain_points:
+                    layer_points.append((px, py + y_offset))
+
+                # Add bottom edge
+                layer_points.append((int(smooth_rain_points[-1][0]), int(graph_y + graph_height)))
+                layer_points.append((int(smooth_rain_points[0][0]), int(graph_y + graph_height)))
+
+                # Draw this layer in blue
+                rain_overlay_draw.polygon(layer_points, fill=(*BLUE, alpha))
+
+            # Paste the blue gradient overlay onto the main image
+            img.paste(rain_overlay, (0, 0), rain_overlay)
+
+            # Draw the smooth precipitation line on top
             for i in range(len(smooth_rain_points) - 1):
                 draw.line([smooth_rain_points[i], smooth_rain_points[i + 1]], fill=BLUE, width=2)
 
