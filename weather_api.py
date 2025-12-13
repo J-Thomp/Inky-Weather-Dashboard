@@ -125,8 +125,9 @@ class WeatherAPI:
                     daily_forecasts[date] = []
                 daily_forecasts[date].append(item)
 
-                # Store hourly data for timeline (next 24 hours)
-                if len(hourly_data) < 8:  # 8 x 3-hour intervals = 24 hours
+                    # Store hourly data for timeline (next 24 hours)
+                # Only take 7 forecast points to leave room for "Now" point
+                if len(hourly_data) < 7:
                     hourly_data.append({
                         'time': datetime.fromtimestamp(item['dt']),
                         'temp': round(item['main']['temp']),
@@ -195,6 +196,17 @@ class WeatherAPI:
                 # Today is missing from forecast (late night), insert it at the beginning
                 forecast['daily'].insert(0, today_data)
                 print(f"Inserted today's forecast from current weather: {current['temp_min']}/{current['temp_max']}°F")
+
+        # Add current weather as the first point in hourly data for immediate graph relevance
+        if current and forecast and forecast.get('hourly'):
+            now_data = {
+                'time': datetime.now(),
+                'temp': current['temperature'],
+                'icon': current['icon'],
+                'rain_chance': 0  # Current weather doesn't have precipitation probability
+            }
+            forecast['hourly'].insert(0, now_data)
+            print(f"Added 'Now' as first hourly point: {current['temperature']}°F")
 
         return {
             'current': current,
