@@ -638,9 +638,11 @@ class WeatherDisplay:
         # Format hourly data for graph
         hourly_data = []
         if forecast.get('hourly'):
-            for hour in forecast['hourly'][:8]:  # Take 8 x 3-hour intervals = 24 hours
+            for i, hour in enumerate(forecast['hourly'][:8]):  # Take 8 points for 24 hours
+                # First point is "Now" (current weather), rest are 3-hour forecast intervals
+                time_label = "Now" if i == 0 else hour['time'].strftime('%I %p').lstrip('0').lower()
                 hourly_data.append({
-                    'time': hour['time'].strftime('%I %p').lstrip('0').lower(),
+                    'time': time_label,
                     'temp': hour['temp'],
                     'rain_chance': hour.get('rain_chance', 0)  # Probability of precipitation
                 })
